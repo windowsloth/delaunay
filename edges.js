@@ -21,13 +21,39 @@ class Edges {
   connect(a, b) {
     const e = new MakeEdge();
     e.DATA = a.SYM.DATA;
-    e.SYM.DATA = b.DATA;
+    e.sym(b.DATA);
+    //e.DATA = a.SYM.DATA;
+  //  e.SYM.DATA = b.DATA;
+    e.cleave(a.LNEXT);
+    e.SYM.cleave(b);
     this.S.splice(this.S.length, 0, e);
-    this.cleave(e, a.LNEXT);
-    this.cleave(e.SYM, b);
+  }
+  destroy(e) {
+    //there's almost no way this works
+    let id = e.DATA;
+    e.cleave(e.SYM.LNEXT);
+    e.SYM.cleave(e.SYM.SYM.LNEXT);
+    for (e of this.S) {
+      if (e.DATA = id) {
+        this.S.splice(this.S.indexOf(id, 0), 1);
+      }
+    }
+  }
+  swap(e) {
+    //same for this
+    let a = e.SYM.LNEXT;
+    let b = e.SYM.SYM.LNEXT;
+    e.cleave(a);
+    e.SYM.cleave(b);
+    e.cleave(a.LNEXT);
+    e.SYM.cleave(b.LNEXT);
+    e.DATA = a.SYM.DATA;
+    e.SYM.DATA = b.DATA;
   }
   show() {
     for (let edge of this.S) {
+      strokeWeight(1);
+      stroke(255);
       line(edge.DATA[0],edge.DATA[1],edge.SYM.DATA[0],edge.SYM.DATA[1]);
     }
   }
