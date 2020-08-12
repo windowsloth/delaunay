@@ -35,7 +35,7 @@ class Edges {
   //   this.S.splice(this.S.length, 0, e);
   }
   destroy(e) {
-    e.cleave(e.SYM().LNEXT());
+    e.cleave(e.OPREV());
     e.SYM().cleave(e.SYM().OPREV());
     for (e of this.S) {
       if (e.DATA = id) {
