@@ -12,11 +12,12 @@ class Edges {
     this.S.splice(this.S.length, 0, e);
   }
   destroy(e) {
+    const id = e;
     e.cleave(e.OPREV());
     e.SYM().cleave(e.SYM().OPREV());
-    for (e of this.S) {
-      if (e.DATA = id) {
-        this.S.splice(this.S.indexOf(id, 0), 1);
+    for (let i = 0; i < this.S.length; i++) {
+      if (e == this.S[i]) {
+        this.S.splice(this.S[i], 1); 
       }
     }
   }
