@@ -1,4 +1,4 @@
-let complexity = 4;
+let complexity = 6;
 const set = [];
 //const edges = [];
 //const syms = [];
@@ -43,27 +43,24 @@ function delaunay(points) {
   }
   if (n.length == 2) {
     const a = new MakeEdge();
-    a.DATA = n[0];
-    a.sym(n[1]);
+    a.setup(n[0], n[1]);
     edges.S.splice(edges.S.length, 0, a);
     le = a;
-    re = a.SYM;
+    re = a.SYM();
   } else if (n.length == 3) {
     const a = new MakeEdge();
     const b = new MakeEdge();
-    a.DATA = n[0];
-    a.sym(n[1]);
-    b.DATA = n[1];
-    b.sym(n[2]);
-    a.SYM.cleave(b);
+    a.setup(n[0], n[1]);
+    b.setup(n[1], n[2]);
+    a.SYM().cleave(b);
     edges.S.splice(edges.S.length, 0, a);
     edges.S.splice(edges.S.length, 0, b);
     edges.connect(b, a);
     if (ccw(n[0], n[1], n[2])) {
       le = a;
-      re = b.SYM;
+      re = b.SYM();
     } else if (ccw(n[0], n[2], n[1])) {
-      le = edges.S[edges.S.length - 1].SYM;
+      le = edges.S[edges.S.length - 1].SYM();
       re = edges.S[edges.S.length - 1];
     }
     // edges.S.splice(edges.S.length, 0, a);
@@ -80,52 +77,215 @@ function delaunay(points) {
     let ldi = le[1];
     let rdi = re[0];
     let rdo = re[1];
-    //console.log(leftof(re.DATA, le));
-    while (leftof(rdi.DATA, ldi) || rightof(ldi.DATA,rdi)) {
+
+    do {
       if (leftof(rdi.DATA, ldi)) {
-        ldi = ldi.LNEXT;
+        ldi = ldi.LNEXT();
       } if (rightof(ldi.DATA, rdi)) {
-        rdi = rdi.SYM.ONEXT;
+        rdi = rdi.RPREV();
       } else {
         break;
       }
-    }
-    edges.connect(rdi.SYM, ldi);
+    } while(true);
+
+    edges.connect(rdi.SYM(), ldi);
     let base1 = edges.S[edges.S.length - 1];
+    // stroke(0,255,0);
+    // line(base1.DATA[0], base1.DATA[1], base1.SYM().DATA[0], base1.SYM().DATA[1]);
+
     if (ldi.DATA == ldo.DATA) {
-      ldo = base1.SYM;
+      ldo = base1.SYM();
     }
     if (rdi.DATA == rdo.DATA) {
       ldo = base1;
     }
 
     //MERGE LOOP BEGINS HERE!!
-    let lcand = base1.SYM.ONEXT;
-    // console.log(lcand);
+    let exit = false;
+    do {
+
+    let lcand = base1.SYM().ONEXT();
     // stroke(255,0,0);
-    // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM.DATA[0],lcand.SYM.DATA[1]);
+    // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM().DATA[0],lcand.SYM().DATA[1]);
     if (valid(lcand, base1)) {
       console.log("hell yeah, brother")
-      if (incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA)) {
-        // let temp = lcand.ONEXT;
-        // edges.destroy(lcand);
-        // lcand = temp;
+      // if (incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+      //   console.log(lcand.ONEXT())
+      //   let temp = lcand.ONEXT();
+      //   edges.destroy(lcand);
+      //   lcand = temp;
+      // }
+      // if (incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+      //   do {
+      //     let temp = lcand.ONEXT();
+      //     edges.destroy(lcand);
+      //     lcand = temp;
+      //   } while(incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA));
+      // }
+      while(incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+        let temp = lcand.ONEXT();
+        edges.destroy(lcand);
+        lcand = temp;
       }
-      // do {
-      //
-      // } while(incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA));
+
     }
 
-    let rcand = base1.SYM.LNEXT;
+    //I added the .SYM() to try and debug
+    let rcand = base1.OPREV();
     // stroke(255,0,0);
-    // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM.DATA[0],rcand.SYM.DATA[1]);
+    // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
+    // console.log(rcand);
+    if (valid(rcand, base1)) {
+      console.log("hell yeah for the right side this time, brother");
+      // if (incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.SYM().OPREV().DATA)) {
+      //   console.log("True!");
+      //   do {
+      //     let temp = rcand.OPREV();
+      //     edges.destroy(rcand);
+      //     rcand = temp;
+      //   } while(incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.SYM().OPREV().DATA));
+      // }
+      while(incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.SYM().OPREV().DATA)) {
+        let temp = rcand.OPREV();
+        edges.destroy(rcand);
+        rcand = temp;
+      }
+
+      // if (incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
+      //   let temp = rcand.OPREV();
+      //   edges.destroy(rcand);
+      //   rcand = temp;
+      // }
+    }
+
+    if (!valid(lcand, base1) && !valid(rcand, base1)) {
+      //console.log(valid(rcand, base1));
+      //console.log(base1);
+      exit = true;
+      //break;
+      console.log("done!");
+    }
+
+    if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+      console.log("second term, bb");
+    }
+    let secondterm = false;
+    if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+      secondterm = true;
+    }
+    if (!valid(lcand, base1) || secondterm) {
+      console.log("rcand wins")
+      edges.connect(rcand, base1.SYM());
+      base1 = edges.S[edges.S.length - 1];
+    } else {
+      console.log("lcand wins")
+      edges.connect(base1.SYM(), lcand.SYM());
+      base1 = edges.S[edges.S.length - 1];
+    }
 
     le = ldo;
     re = rdo;
+  } while(!exit);//while(valid(lcand, base1) || valid(rcand, base1));
+
   }
   return [le, re];
   //edges.show();
 }
+
+// function delaunay(points) {
+//   const n = [];
+//   let le;
+//   let re;
+//
+//   for (p of points) {
+//     let arr = [p.x, p.y]
+//     n.splice(n.length, 0, arr);
+//   }
+//   if (n.length == 2) {
+//     const a = new MakeEdge();
+//     a.DATA = n[0];
+//     a.sym(n[1]);
+//     edges.S.splice(edges.S.length, 0, a);
+//     le = a;
+//     re = a.SYM;
+//   } else if (n.length == 3) {
+//     const a = new MakeEdge();
+//     const b = new MakeEdge();
+//     a.DATA = n[0];
+//     a.sym(n[1]);
+//     b.DATA = n[1];
+//     b.sym(n[2]);
+//     a.SYM.cleave(b);
+//     edges.S.splice(edges.S.length, 0, a);
+//     edges.S.splice(edges.S.length, 0, b);
+//     edges.connect(b, a);
+//     if (ccw(n[0], n[1], n[2])) {
+//       le = a;
+//       re = b.SYM;
+//     } else if (ccw(n[0], n[2], n[1])) {
+//       le = edges.S[edges.S.length - 1].SYM;
+//       re = edges.S[edges.S.length - 1];
+//     }
+//     // edges.S.splice(edges.S.length, 0, a);
+//     // edges.S.splice(edges.S.length, 0, b);
+//   } else if (n.length >= 4) {
+//     const split = Math.floor(points.length / 2);
+//     let l = points.splice(0, split);
+//     let r = points;
+//     //delaunay(l);
+//     le = delaunay(l);
+//     //delaunay(l);
+//     re = delaunay(r);
+//     let ldo = le[0];
+//     let ldi = le[1];
+//     let rdi = re[0];
+//     let rdo = re[1];
+//     //console.log(leftof(re.DATA, le));
+//     while (leftof(rdi.DATA, ldi) || rightof(ldi.DATA,rdi)) {
+//       if (leftof(rdi.DATA, ldi)) {
+//         ldi = ldi.LNEXT;
+//       } if (rightof(ldi.DATA, rdi)) {
+//         rdi = rdi.SYM.ONEXT;
+//       } else {
+//         break;
+//       }
+//     }
+//     edges.connect(rdi.SYM, ldi);
+//     let base1 = edges.S[edges.S.length - 1];
+//     if (ldi.DATA == ldo.DATA) {
+//       ldo = base1.SYM;
+//     }
+//     if (rdi.DATA == rdo.DATA) {
+//       ldo = base1;
+//     }
+//
+//     //MERGE LOOP BEGINS HERE!!
+//     let lcand = base1.SYM.ONEXT;
+//     // console.log(lcand);
+//     // stroke(255,0,0);
+//     // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM.DATA[0],lcand.SYM.DATA[1]);
+//     if (valid(lcand, base1)) {
+//       console.log("hell yeah, brother")
+//       if (incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA)) {
+//         // let temp = lcand.ONEXT;
+//         // edges.destroy(lcand);
+//         // lcand = temp;
+//       }
+//       // do {
+//       //
+//       // } while(incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA));
+//     }
+//
+//     let rcand = base1.SYM.LNEXT;
+//     // stroke(255,0,0);
+//     // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM.DATA[0],rcand.SYM.DATA[1]);
+//
+//     le = ldo;
+//     re = rdo;
+//   }
+//   return [le, re];
+//   //edges.show();
+// }
 
 // function maketriangles(points) {
 //   const n = [];
@@ -211,10 +371,10 @@ function ccw(a, b, c) {
   return det;
 }
 function rightof(x, e) {
-  return ccw(x, e.SYM.DATA, e.DATA);
+  return ccw(x, e.SYM().DATA, e.DATA);
 }
 function leftof(x, e) {
-  return ccw(x, e.DATA, e.SYM.DATA);
+  return ccw(x, e.DATA, e.SYM().DATA);
 }
 function incircle(a, b, c, d) {
   let det = false;
@@ -249,12 +409,12 @@ function incircle(a, b, c, d) {
   if ($a - $b + $c < 0) {
     det = true;
   }
-  return true;
+  return det;
 }
 function valid(a, b) {
   let result = false;
-  if (rightof(a.SYM.DATA, b) && ccw(a.SYM.DATA, b.SYM.DATA, b.DATA)) {
-    return true;
+  if (rightof(a.SYM().DATA, b) && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)) {
+    result = true;
   }
   return result;
 }
