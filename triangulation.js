@@ -95,7 +95,7 @@ function delaunay(points) {
 
     //MERGE LOOP BEGINS HERE!!
     let exit = false;
-    do {
+    while (!exit) {
 
     let lcand = base1.SYM().ONEXT();
     // stroke(255,0,0);
@@ -113,7 +113,7 @@ function delaunay(points) {
     // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
     // console.log(rcand);
     if (valid(rcand, base1)) {
-      while(incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.SYM().OPREV().DATA)) {
+      while(incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
         let temp = rcand.OPREV();
         edges.destroy(rcand);
         rcand = temp;
@@ -145,7 +145,7 @@ function delaunay(points) {
 
     le = ldo;
     re = rdo;
-  } while(!exit);
+  }
 
   }
   return [le, re];
@@ -225,21 +225,21 @@ function incircle(a, b, c, d) {
   // |M| = |[d, e, f]| = a(ei - fh) - b(di - fg) + c(dh - eg)
   //       |[g, h, i]|
   //
-  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) - Math.pow(ay - dy, 2)],
-  // [bx - dy, by - dy, Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)],
-  // [cx - dx, cy - dy, Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2)]
-  const ei = (by - dy) * (Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2));
-  const fh = (Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)) * (cy - dy);
-  const di = (bx - dy) * (Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2));
-  const fg = (Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)) * (cx - dx);
-  const dh = (bx - dy) * (cy - dy);
+  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)],
+  // [bx - dy, by - dy, Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)],
+  // [cx - dx, cy - dy, Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2)]
+  const ei = (by - dy) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fh = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cy - dy);
+  const di = (bx - dx) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fg = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cx - dx);
+  const dh = (bx - dx) * (cy - dy);
   const eg = (by - dy) * (cx - dx);
 
   const $a = (ax - dx) * (ei - fh);
   const $b = (ay - dy) * (di - fg);
-  const $c = (Math.pow(ax - dx, 2) - Math.pow(ay - dy, 2)) * (dh - eg);
+  const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
 
-  if ($a - $b + $c < 0) {
+  if ($a - $b + $c > 0) {
     det = true;
   }
   return det;
