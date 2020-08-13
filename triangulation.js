@@ -100,25 +100,25 @@ function delaunay(points) {
     let lcand = base1.SYM().ONEXT();
     // stroke(255,0,0);
     // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM().DATA[0],lcand.SYM().DATA[1]);
-    if (valid(lcand, base1)) {
-      while(incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+    //if (valid(lcand, base1)) {
+      while(valid(lcand, base1) && incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
         let temp = lcand.ONEXT();
         edges.destroy(lcand);
         lcand = temp;
       }
-    }
+    //}
       
     let rcand = base1.OPREV();
     // stroke(255,0,0);
     // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
     // console.log(rcand);
-    if (valid(rcand, base1)) {
-      while(incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
+    //if (valid(rcand, base1)) {
+      while(valid(rcand, base1) && incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
         let temp = rcand.OPREV();
         edges.destroy(rcand);
         rcand = temp;
       }
-    }
+    //}
 
     if (!valid(lcand, base1) && !valid(rcand, base1)) {
       exit = true;
@@ -126,7 +126,7 @@ function delaunay(points) {
       break;
     }
 
-    if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+    /*if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
       console.log("second term, bb");
     }
     let secondterm = false;
@@ -141,6 +141,22 @@ function delaunay(points) {
       console.log("lcand wins")
       edges.connect(base1.SYM(), lcand.SYM());
       base1 = edges.S[edges.S.length - 1];
+    }*/
+      
+    if (valid(lcand, base1)) {
+      if (valid(rcand, base1) && incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+        console.log("rcand wins");
+        edges.connect(rcand, base1.SYM());
+        base1 = edges.S[eges.S.length - 1];
+      } else {
+        console.log("rcand wins");
+        edges.connect(base1.SYM(), lcand.SYM());
+        base1 = edges.S[edges.S.length - 1];
+      }
+    } else {
+      console.log("rcand wins but lets make sure it's valid: " + valid(rcand, base1));
+      edges.connect(rcand, base1.SYM());
+      base1 = edges.S[eges.S.length - 1];
     }
 
     le = ldo;
@@ -210,7 +226,10 @@ function leftof(x, e) {
   return ccw(x, e.DATA, e.SYM().DATA);
 }
 function incircle(a, b, c, d) {
-  let det = false;
+//Need to change the name or something here bc its not intuitive
+//Returns true if point d falls within the circle abc
+//Assuming abc are sorted in counter-clockwise order
+  let det = true;
 
   const ax = a[0];
   const ay = a[1];
@@ -225,9 +244,10 @@ function incircle(a, b, c, d) {
   // |M| = |[d, e, f]| = a(ei - fh) - b(di - fg) + c(dh - eg)
   //       |[g, h, i]|
   //
-  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)],
-  // [bx - dy, by - dy, Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)],
+  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)]
+  // [bx - dx, by - dy, Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)]
   // [cx - dx, cy - dy, Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2)]
+
   const ei = (by - dy) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
   const fh = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cy - dy);
   const di = (bx - dx) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
@@ -238,16 +258,8 @@ function incircle(a, b, c, d) {
   const $a = (ax - dx) * (ei - fh);
   const $b = (ay - dy) * (di - fg);
   const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
-
   if ($a - $b + $c > 0) {
-    det = true;
+    det = false;
   }
   return det;
-}
-function valid(a, b) {
-  let result = false;
-  if (rightof(a.SYM().DATA, b) && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)) {
-    result = true;
-  }
-  return result;
 }
