@@ -17,7 +17,12 @@ class Edges {
     e.SYM().cleave(e.SYM().OPREV());
     for (let i = 0; i < this.S.length; i++) {
       if (e == this.S[i]) {
-        this.S.splice(this.S[i], 1); 
+	console.log("I'm deleting this one");
+	console.log(e);
+console.log(this.S[i]);
+	stroke(255,0,0);
+	//line(e.DATA[0], e.DATA[1], e.SYM().DATA[0], e.SYM().DATA[1]);
+        this.S.splice(i, 1); 
       }
     }
   }
