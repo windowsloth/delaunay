@@ -71,7 +71,7 @@ function delaunay(points) {
     let ldi = le[1];
     let rdi = re[0];
     let rdo = re[1];
-
+   
     while(true) {
       if (leftof(rdi.DATA, ldi)) {
         ldi = ldi.LNEXT();
@@ -147,7 +147,7 @@ function delaunay(points) {
       if (valid(rcand, base1) && incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
         console.log("rcand wins");
         edges.connect(rcand, base1.SYM());
-        base1 = edges.S[eges.S.length - 1];
+        base1 = edges.S[edges.S.length - 1];
       } else {
         console.log("rcand wins");
         edges.connect(base1.SYM(), lcand.SYM());
@@ -156,7 +156,7 @@ function delaunay(points) {
     } else {
       console.log("rcand wins but lets make sure it's valid: " + valid(rcand, base1));
       edges.connect(rcand, base1.SYM());
-      base1 = edges.S[eges.S.length - 1];
+      base1 = edges.S[edges.S.length - 1];
     }
 
     le = ldo;
