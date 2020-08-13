@@ -1,12 +1,10 @@
-let complexity = 4;
+let complexity = 8;
 const set = [];
-//const edges = [];
-//const syms = [];
 const edges = new Edges();
 
 function setup() {
   noLoop();
-  randomSeed(117);
+  randomSeed(23);
 
   createCanvas(500, 500);
   background(0);
@@ -43,122 +41,137 @@ function delaunay(points) {
   }
   if (n.length == 2) {
     const a = new MakeEdge();
-    a.DATA = n[0];
-    a.sym(n[1]);
+    a.setup(n[0], n[1]);
     edges.S.splice(edges.S.length, 0, a);
     le = a;
-    re = a.SYM;
+    re = a.SYM();
   } else if (n.length == 3) {
     const a = new MakeEdge();
     const b = new MakeEdge();
-    a.DATA = n[0];
-    a.sym(n[1]);
-    b.DATA = n[1];
-    b.sym(n[2]);
-    a.SYM.cleave(b);
+    a.setup(n[0], n[1]);
+    b.setup(n[1], n[2]);
+    a.SYM().cleave(b);
     edges.S.splice(edges.S.length, 0, a);
     edges.S.splice(edges.S.length, 0, b);
     edges.connect(b, a);
     if (ccw(n[0], n[1], n[2])) {
       le = a;
-      re = b.SYM;
+      re = b.SYM();
     } else if (ccw(n[0], n[2], n[1])) {
-      le = edges.S[edges.S.length - 1].SYM;
+      le = edges.S[edges.S.length - 1].SYM();
       re = edges.S[edges.S.length - 1];
     }
-    // edges.S.splice(edges.S.length, 0, a);
-    // edges.S.splice(edges.S.length, 0, b);
   } else if (n.length >= 4) {
     const split = Math.floor(points.length / 2);
     let l = points.splice(0, split);
     let r = points;
-    //delaunay(l);
     le = delaunay(l);
-    //delaunay(l);
     re = delaunay(r);
     let ldo = le[0];
     let ldi = le[1];
     let rdi = re[0];
     let rdo = re[1];
-    //console.log(leftof(re.DATA, le));
-    while (leftof(rdi.DATA, ldi) || rightof(ldi.DATA,rdi)) {
+   
+    while(true) {
       if (leftof(rdi.DATA, ldi)) {
-        ldi = ldi.LNEXT;
+        ldi = ldi.LNEXT();
       } if (rightof(ldi.DATA, rdi)) {
-        rdi = rdi.SYM.ONEXT;
+        rdi = rdi.RPREV();
       } else {
         break;
       }
     }
-    edges.connect(rdi.SYM, ldi);
+
+    edges.connect(rdi.SYM(), ldi);
     let base1 = edges.S[edges.S.length - 1];
+    // stroke(0,255,0);
+    // line(base1.DATA[0], base1.DATA[1], base1.SYM().DATA[0], base1.SYM().DATA[1]);
     if (ldi.DATA == ldo.DATA) {
-      ldo = base1.SYM;
+      ldo = base1.SYM();
     }
     if (rdi.DATA == rdo.DATA) {
       ldo = base1;
     }
 
     //MERGE LOOP BEGINS HERE!!
-    let lcand = base1.SYM.ONEXT;
-    // console.log(lcand);
+    let exit = false;
+    while (!exit) {
+
+    let lcand = base1.SYM().ONEXT();
     // stroke(255,0,0);
-    // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM.DATA[0],lcand.SYM.DATA[1]);
-    if (valid(lcand, base1)) {
-      console.log("hell yeah, brother")
-      if (incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA)) {
-        // let temp = lcand.ONEXT;
-        // edges.destroy(lcand);
-        // lcand = temp;
+    // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM().DATA[0],lcand.SYM().DATA[1]);
+    //if (valid(lcand, base1)) {
+      while(valid(lcand, base1) && incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+        let temp = lcand.ONEXT();
+        edges.destroy(lcand);
+        lcand = temp;
       }
-      // do {
-      //
-      // } while(incircle(base1.SYM.DATA, base1.DATA, lcand.SYM.DATA, lcand.DATA));
+    //}
+      
+    let rcand = base1.OPREV();
+    // stroke(255,0,0);
+    // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
+    // console.log(rcand);
+    //if (valid(rcand, base1)) {
+      while(valid(rcand, base1) && incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
+console.log("moving rcand!");
+        let temp = rcand.OPREV();
+        edges.destroy(rcand);
+        rcand = temp;
+      }
+    //}
+console.log(rcand);
+console.log("Is rcand valid?" + valid(rcand, base1));
+//console.log(ccw(rcand.SYM().DATA, base1.SYM().DATA, base1.DATA));
+
+    if (!valid(lcand, base1) && !valid(rcand, base1)) {
+      exit = true;
+      console.log("done!");
+      break;
     }
 
-    let rcand = base1.SYM.LNEXT;
-    // stroke(255,0,0);
-    // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM.DATA[0],rcand.SYM.DATA[1]);
+    /*if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+      console.log("second term, bb");
+    }
+    let secondterm = false;
+    if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+      secondterm = true;
+    }
+    if (!valid(lcand, base1) || secondterm) {
+      console.log("rcand wins")
+      edges.connect(rcand, base1.SYM());
+      base1 = edges.S[edges.S.length - 1];
+    } else {
+      console.log("lcand wins")
+      edges.connect(base1.SYM(), lcand.SYM());
+      base1 = edges.S[edges.S.length - 1];
+    }*/
+      
+    if (valid(lcand, base1)) {
+      if (valid(rcand, base1) && incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
+        console.log("rcand wins");
+        edges.connect(rcand, base1.SYM());
+        base1 = edges.S[edges.S.length - 1];
+      } else {
+        console.log("rcand wins");
+        edges.connect(base1.SYM(), lcand.SYM());
+        base1 = edges.S[edges.S.length - 1];
+      }
+    } else {
+      console.log("rcand wins but lets make sure it's valid: " + valid(rcand, base1));
+      edges.connect(rcand, base1.SYM());
+      base1 = edges.S[edges.S.length - 1];
+    }
 
     le = ldo;
     re = rdo;
+  }
+
   }
   return [le, re];
   //edges.show();
 }
 
-// function maketriangles(points) {
-//   const n = [];
-//   for (let i = 0; i < points.length; i++) {
-//     n[i] = points[i];
-//   };
-//   strokeWeight(1);
-//   if (n.length == 2) {
-//     const a = new MakeEdge(n[0],n[1]);
-//     edges.add(a);
-//     //line(n[0].x, n[0].y, n[1].x, n[1].y);
-//   } else if (n.length == 3) {
-//     const a = new MakeEdge(n[0],n[1]);
-//     const b = new MakeEdge(n[1],n[2]);
-//     const c = new MakeEdge(n[2],n[0]);
-//     edges.add(a);
-//     a.cleave(b);
-//     b.cleave(c);
-//     c.cleave(a);
-//     //edges.splice(edges.length,0,a);
-//     //edges.splice(edges.length,0,b);
-//     //line(n[0].x, n[0].y, n[1].x, n[1].y);
-//     //line(n[1].x, n[1].y, n[2].x, n[2].y);
-//     //line(n[0].x, n[0].y, n[2].x, n[2].y);
-//   } else if (n.length >= 4) {
-//     const split = Math.floor(points.length / 2);
-//     let l = n.splice(0, split);
-//     let r = n;
-//     maketriangles(l);
-//     maketriangles(r);
-//   }
-// }
-//
 function quicksort(arr, start, end, xy) {
   if (start >= end) {
     return;
@@ -205,19 +218,23 @@ function ccw(a, b, c) {
   const ceg = b[1] * c[0];
   const bdi = a[1] * b[0];
   const afh = a[0] * c[1];
-  if (aei + bfg + cdh - ceg - bdi - afh < 0) {
+  /*if (aei + bfg + cdh - ceg - bdi - afh < 0) {
     det = true;
   }
-  return det;
+  return det;*/
+  return (aei + bfg + cdh - ceg - bdi - afh) > 0;
 }
 function rightof(x, e) {
-  return ccw(x, e.SYM.DATA, e.DATA);
+  return ccw(x, e.SYM().DATA, e.DATA);
 }
 function leftof(x, e) {
-  return ccw(x, e.DATA, e.SYM.DATA);
+  return ccw(x, e.DATA, e.SYM().DATA);
 }
 function incircle(a, b, c, d) {
-  let det = false;
+//Need to change the name or something here bc its not intuitive
+//Returns true if point d falls within the circle abc
+//Assuming abc are sorted in counter-clockwise order
+  let det = true;
 
   const ax = a[0];
   const ay = a[1];
@@ -232,99 +249,32 @@ function incircle(a, b, c, d) {
   // |M| = |[d, e, f]| = a(ei - fh) - b(di - fg) + c(dh - eg)
   //       |[g, h, i]|
   //
-  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) - Math.pow(ay - dy, 2)],
-  // [bx - dy, by - dy, Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)],
-  // [cx - dx, cy - dy, Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2)]
-  const ei = (by - dy) * (Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2));
-  const fh = (Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)) * (cy - dy);
-  const di = (bx - dy) * (Math.pow(cx - dx, 2) - Math.pow(cy - dy, 2));
-  const fg = (Math.pow(bx - dx, 2) - Math.pow(by - dy, 2)) * (cx - dx);
-  const dh = (bx - dy) * (cy - dy);
+  // [ax - dx, ay - dy, Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)]
+  // [bx - dx, by - dy, Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)]
+  // [cx - dx, cy - dy, Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2)]
+
+  const ei = (by - dy) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fh = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cy - dy);
+  const di = (bx - dx) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fg = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cx - dx);
+  const dh = (bx - dx) * (cy - dy);
   const eg = (by - dy) * (cx - dx);
 
   const $a = (ax - dx) * (ei - fh);
   const $b = (ay - dy) * (di - fg);
-  const $c = (Math.pow(ax - dx, 2) - Math.pow(ay - dy, 2)) * (dh - eg);
-
-  if ($a - $b + $c < 0) {
-    det = true;
+  const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
+	//console.log($a - $b + $c);
+	console.log($a - $b + $c > 0);
+  /*if ($a - $b + $c > 0) {
+    det = false;
   }
-  return true;
+  return det;*/
+	return ($a - $b + $c) > 0;
 }
 function valid(a, b) {
   let result = false;
-  if (rightof(a.SYM.DATA, b) && ccw(a.SYM.DATA, b.SYM.DATA, b.DATA)) {
-    return true;
+  if (rightof(a.SYM().DATA, b) && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)) {
+    result = true;
   }
   return result;
 }
-//
-// function ccw(a, b, c) {
-//   // const v1 = p5.Vector.sub(a.org, a.dest);
-//   // const v2 = p5.Vector.sub(b.org, b.dest);
-//   // const det = v1.x * v2.y - v1.y * v2.x;
-//   // if (det > 0) {
-//   //   return true;
-//   // } else {
-//   //   return false;
-//   // }
-//   const cx = (a.org.x + b.org.x + c.org.x) / 3;
-//   const cy = (a.org.y + b.org.y + c.org.y) /3;
-//   const centroid = createVector(cx, cy);
-//   let v1 = p5.Vector.sub(centroid, a.org);
-//   let v2 = p5.Vector.sub(centroid, c.org);
-//   const det = v1.x * v2.y - v1.y * v2.x;
-//   if (det > 0) {
-//     return true;
-//   } else {
-//     return false;
-//   }
-// }
-
-/*class ListNode {
-  constructor(data) {
-    this.data = data;
-    this.next = null;
-  }
-}
-
-class LinkedList {
-  constructor(head = null) {
-    this.head = head;
-  }
-}*/
-
-// class Edges {
-//   constructor(e = null) {
-//     this.e = e;
-//   }
-//
-//   sym() {
-//     const sym = new MakeEdge(e.data[1], e.data[0]);
-//     return sym;
-//   }
-// }
-//
-// class MakeEdge {
-//   constructor(org, dest) {
-//     this.org = org;
-//     this.dest = dest;
-//     this.ONEXT = null;
-//     this.LNEXT = null;
-//   }
-//
-//   data() {
-//     const data = [org, dest];
-//     return data;
-//   }
-//
-//   sym() {
-//     const sym = [dest, org];
-//     return sym;
-//   }
-//
-//   join(onext) {
-//     this.ONEXT = onext;
-//     onext.LNEXT = this;
-//   }
-// }
