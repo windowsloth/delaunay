@@ -263,3 +263,10 @@ function incircle(a, b, c, d) {
   }
   return det;
 }
+function valid(a, b) {
+  let result = false;
+  if (rightof(a.SYM().DATA, b) && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)) {
+    result = true;
+  }
+  return result;
+}
