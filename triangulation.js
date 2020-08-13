@@ -1,10 +1,10 @@
-let complexity = 6;
+let complexity = 8;
 const set = [];
 const edges = new Edges();
 
 function setup() {
   noLoop();
-  randomSeed(117);
+  randomSeed(23);
 
   createCanvas(500, 500);
   background(0);
@@ -114,11 +114,15 @@ function delaunay(points) {
     // console.log(rcand);
     //if (valid(rcand, base1)) {
       while(valid(rcand, base1) && incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
+console.log("moving rcand!");
         let temp = rcand.OPREV();
         edges.destroy(rcand);
         rcand = temp;
       }
     //}
+console.log(rcand);
+console.log("Is rcand valid?" + valid(rcand, base1));
+//console.log(ccw(rcand.SYM().DATA, base1.SYM().DATA, base1.DATA));
 
     if (!valid(lcand, base1) && !valid(rcand, base1)) {
       exit = true;
@@ -214,10 +218,11 @@ function ccw(a, b, c) {
   const ceg = b[1] * c[0];
   const bdi = a[1] * b[0];
   const afh = a[0] * c[1];
-  if (aei + bfg + cdh - ceg - bdi - afh < 0) {
+  /*if (aei + bfg + cdh - ceg - bdi - afh < 0) {
     det = true;
   }
-  return det;
+  return det;*/
+  return (aei + bfg + cdh - ceg - bdi - afh) > 0;
 }
 function rightof(x, e) {
   return ccw(x, e.SYM().DATA, e.DATA);
@@ -258,10 +263,13 @@ function incircle(a, b, c, d) {
   const $a = (ax - dx) * (ei - fh);
   const $b = (ay - dy) * (di - fg);
   const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
-  if ($a - $b + $c > 0) {
+	//console.log($a - $b + $c);
+	console.log($a - $b + $c > 0);
+  /*if ($a - $b + $c > 0) {
     det = false;
   }
-  return det;
+  return det;*/
+	return ($a - $b + $c) > 0;
 }
 function valid(a, b) {
   let result = false;
