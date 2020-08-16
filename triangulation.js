@@ -1,3 +1,4 @@
+
 let complexity = 14;
 const set = [];
 const edges = new Edges();
@@ -73,17 +74,7 @@ function delaunay(points) {
     let ldi = le[1];
     let rdi = re[0];
     let rdo = re[1];
-
-    // stroke(255, 0, 0);
-    // line(rdo.DATA[0], rdo.DATA[1], rdo.SYM().DATA[0], rdo.SYM().DATA[1]);
-    // circle(rdo.DATA[0], rdo.DATA[1], 10);
-    // stroke(0, 255, 0);
-    // line(rdi.DATA[0], rdi.DATA[1], rdi.SYM().DATA[0], rdi.SYM().DATA[1]);
-    // circle(rdi.RPREV().DATA[0], rdi.RPREV().DATA[1], 10);
-    // stroke(255, 255, 0);
-    // line(ldi.DATA[0], ldi.DATA[1], ldi.SYM().DATA[0], ldi.SYM().DATA[1]);
-    // circle(ldi.DATA[0], ldi.DATA[1], 5);
-
+    
     while(true) {
       if (leftof(rdi.DATA, ldi)) {
         console.log("flip le");
@@ -95,6 +86,7 @@ function delaunay(points) {
         break;
       }
     }
+
     // line(ldi.DATA[0], ldi.DATA[1], ldi.SYM().DATA[0], ldi.SYM().DATA[1]);
     // circle(ldi.DATA[0], ldi.DATA[1], 5);
 
@@ -132,7 +124,7 @@ function delaunay(points) {
         lcand = temp;
       }
     //}
-
+      
     let rcand = base1.OPREV();
     // stroke(255,0,0);
     // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
@@ -156,6 +148,7 @@ function delaunay(points) {
       console.log("done!");
       break;
     }
+      
     if (valid(lcand, base1)) {
       if (valid(rcand, base1) && incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
         console.log("rcand wins");
@@ -249,7 +242,6 @@ function incircle(a, b, c, d) {
 //Need to change the name or something here bc its not intuitive
 //Returns true if point d falls within the circle abc
 //Assuming abc are sorted in counter-clockwise order
-
   const ax = a[0];
   const ay = a[1];
   const bx = b[0];
@@ -278,11 +270,11 @@ function incircle(a, b, c, d) {
   const $b = (ay - dy) * (di - fg);
   const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
 	//console.log($a - $b + $c);
-	//console.log($a - $b + $c > 0);
   /*if ($a - $b + $c > 0) {
     det = false;
   }
   return det;*/
+
   // stroke(255);
   // strokeWeight(.5);
   // circcirc(a, b, c);
@@ -304,6 +296,7 @@ function valid(a, b) {
   }
   return result;
 }
+
 
 function circcirc(a, b, c) {
   // const p1 = createVector(a.DATA[0], a.DATA[1]);
