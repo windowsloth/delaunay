@@ -1,10 +1,10 @@
-let complexity = 8;
+let complexity = 14;
 const set = [];
 const edges = new Edges();
 
 function setup() {
   noLoop();
-  randomSeed(23);
+  //randomSeed(7272);
 
   createCanvas(500, 500);
   background(0);
@@ -53,13 +53,15 @@ function delaunay(points) {
     a.SYM().cleave(b);
     edges.S.splice(edges.S.length, 0, a);
     edges.S.splice(edges.S.length, 0, b);
-    edges.connect(b, a);
-    if (ccw(n[0], n[1], n[2])) {
+    const c = edges.connect(b, a);
+    if (ccw(n[0], n[1], n[2]) /*leftof(c.DATA, a)*/) {
       le = a;
       re = b.SYM();
     } else if (ccw(n[0], n[2], n[1])) {
-      le = edges.S[edges.S.length - 1].SYM();
-      re = edges.S[edges.S.length - 1];
+      // le = edges.S[edges.S.length - 1].SYM();
+      // re = edges.S[edges.S.length - 1];
+      le = c.SYM();
+      re = c;
     }
   } else if (n.length >= 4) {
     const split = Math.floor(points.length / 2);
@@ -71,28 +73,49 @@ function delaunay(points) {
     let ldi = le[1];
     let rdi = re[0];
     let rdo = re[1];
-   
+
+    // stroke(255, 0, 0);
+    // line(rdo.DATA[0], rdo.DATA[1], rdo.SYM().DATA[0], rdo.SYM().DATA[1]);
+    // circle(rdo.DATA[0], rdo.DATA[1], 10);
+    // stroke(0, 255, 0);
+    // line(rdi.DATA[0], rdi.DATA[1], rdi.SYM().DATA[0], rdi.SYM().DATA[1]);
+    // circle(rdi.RPREV().DATA[0], rdi.RPREV().DATA[1], 10);
+    // stroke(255, 255, 0);
+    // line(ldi.DATA[0], ldi.DATA[1], ldi.SYM().DATA[0], ldi.SYM().DATA[1]);
+    // circle(ldi.DATA[0], ldi.DATA[1], 5);
+
     while(true) {
       if (leftof(rdi.DATA, ldi)) {
+        console.log("flip le");
         ldi = ldi.LNEXT();
-      } if (rightof(ldi.DATA, rdi)) {
+      } else if (rightof(ldi.DATA, rdi)) {
+        console.log("fleepo");
         rdi = rdi.RPREV();
       } else {
         break;
       }
     }
+    // line(ldi.DATA[0], ldi.DATA[1], ldi.SYM().DATA[0], ldi.SYM().DATA[1]);
+    // circle(ldi.DATA[0], ldi.DATA[1], 5);
 
-    edges.connect(rdi.SYM(), ldi);
-    let base1 = edges.S[edges.S.length - 1];
+    let base1 = edges.connect(rdi.SYM(), ldi);
+    //let base1 = edges.S[edges.S.length - 1];
     // stroke(0,255,0);
     // line(base1.DATA[0], base1.DATA[1], base1.SYM().DATA[0], base1.SYM().DATA[1]);
-    if (ldi.DATA == ldo.DATA) {
+    // circle(ldi.DATA[0], ldi.DATA[1], 10);
+    // stroke(255, 0, 0);
+    // circle(ldo.DATA[0], ldo.DATA[1], 10);
+    if (ldi.DATA == ldo.DATA /*|| ldi.SYM().DATA == ldo.DATA*/) {
       ldo = base1.SYM();
     }
-    if (rdi.DATA == rdo.DATA) {
-      ldo = base1;
+    if (rdi.DATA == rdo.DATA /*|| rdi.SYM().DATA == rdo.DATA*/) {
+      rdo = base1;
     }
+    // console.log(base1);
+    // console.log(base1.OPREV());
+    // circcirc(base1.SYM().DATA, base1.DATA, base1.OPREV().SYM().DATA);
 
+  //   //console.log(base1);
     //MERGE LOOP BEGINS HERE!!
     let exit = false;
     while (!exit) {
@@ -102,58 +125,44 @@ function delaunay(points) {
     // line(lcand.DATA[0],lcand.DATA[1],lcand.SYM().DATA[0],lcand.SYM().DATA[1]);
     //if (valid(lcand, base1)) {
       while(valid(lcand, base1) && incircle(base1.SYM().DATA, base1.DATA, lcand.SYM().DATA, lcand.ONEXT().SYM().DATA)) {
+        console.log("moving lcand!");
+        console.log(lcand);
         let temp = lcand.ONEXT();
         edges.destroy(lcand);
         lcand = temp;
       }
     //}
-      
+
     let rcand = base1.OPREV();
     // stroke(255,0,0);
     // line(rcand.DATA[0],rcand.DATA[1],rcand.SYM().DATA[0],rcand.SYM().DATA[1]);
     // console.log(rcand);
     //if (valid(rcand, base1)) {
       while(valid(rcand, base1) && incircle(base1.SYM().DATA, base1.DATA, rcand.SYM().DATA, rcand.OPREV().SYM().DATA)) {
-console.log("moving rcand!");
+        //circle(rcand.OPREV().SYM().DATA[0], rcand.OPREV().SYM().DATA[1], 10);
+        console.log("moving rcand!");
         let temp = rcand.OPREV();
         edges.destroy(rcand);
         rcand = temp;
       }
     //}
-console.log(rcand);
-console.log("Is rcand valid?" + valid(rcand, base1));
-//console.log(ccw(rcand.SYM().DATA, base1.SYM().DATA, base1.DATA));
+    console.log("Is rcand valid?" + valid(rcand, base1));
+    //console.log(ccw(rcand.SYM().DATA, base1.SYM().DATA, base1.DATA));
 
+    console.log("quick!" + valid(lcand, base1));
+    console.log("quick!" + valid(rcand, base1));
     if (!valid(lcand, base1) && !valid(rcand, base1)) {
       exit = true;
       console.log("done!");
       break;
     }
-
-    /*if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
-      console.log("second term, bb");
-    }
-    let secondterm = false;
-    if (valid(rcand, base1) && !incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
-      secondterm = true;
-    }
-    if (!valid(lcand, base1) || secondterm) {
-      console.log("rcand wins")
-      edges.connect(rcand, base1.SYM());
-      base1 = edges.S[edges.S.length - 1];
-    } else {
-      console.log("lcand wins")
-      edges.connect(base1.SYM(), lcand.SYM());
-      base1 = edges.S[edges.S.length - 1];
-    }*/
-      
     if (valid(lcand, base1)) {
       if (valid(rcand, base1) && incircle(lcand.SYM().DATA, lcand.DATA, rcand.DATA, rcand.SYM().DATA)) {
         console.log("rcand wins");
         edges.connect(rcand, base1.SYM());
         base1 = edges.S[edges.S.length - 1];
       } else {
-        console.log("rcand wins");
+        console.log("lcand wins");
         edges.connect(base1.SYM(), lcand.SYM());
         base1 = edges.S[edges.S.length - 1];
       }
@@ -211,30 +220,35 @@ function swap (arr, a, b) {
 }
 
 function ccw(a, b, c) {
-  let det = false;
-  const aei = a[0] * b[1];
-  const bfg = a[1] * c[0];
-  const cdh = b[0] * c[1];
-  const ceg = b[1] * c[0];
-  const bdi = a[1] * b[0];
-  const afh = a[0] * c[1];
+  //console.log((a[0] * (b[1] - c[1]) - a[1] * (b[0] - c[0]) + (b[0] * c[1] - b[1] * c[0])) < 0)
+  return (a[0] * (b[1] - c[1]) - a[1] * (b[0] - c[0]) + (b[0] * c[1] - b[1] * c[0])) < 0;
+  //return(incircle(a, b, c, 1));
   /*if (aei + bfg + cdh - ceg - bdi - afh < 0) {
     det = true;
   }
   return det;*/
-  return (aei + bfg + cdh - ceg - bdi - afh) > 0;
+  //return (aei + bfg + cdh - ceg - bdi - afh) > 0;
 }
-function rightof(x, e) {
-  return ccw(x, e.SYM().DATA, e.DATA);
+function rightof(p, e) {
+  let x = [e.SYM().DATA[0] - e.DATA[0], e.SYM().DATA[1] - e.DATA[1]];
+  let y = [p[0] - e.DATA[0], p[1] - e.DATA[1]];
+  return x[0] * y[1] - x[1] * y[0] > 0;
 }
-function leftof(x, e) {
-  return ccw(x, e.DATA, e.SYM().DATA);
+function leftof(p, e) {
+  let x = [e.SYM().DATA[0] - e.DATA[0], e.SYM().DATA[1] - e.DATA[1]];
+  let y = [p[0] - e.DATA[0], p[1] - e.DATA[1]];
+  return x[0] * y[1] - x[1] * y[0] < 0;
 }
+// function rightof(x, e) {
+//   return ccw(x, e.SYM().DATA, e.DATA);
+// }
+// function leftof(x, e) {
+//   return ccw(x, e.DATA, e.SYM().DATA);
+// }
 function incircle(a, b, c, d) {
 //Need to change the name or something here bc its not intuitive
 //Returns true if point d falls within the circle abc
 //Assuming abc are sorted in counter-clockwise order
-  let det = true;
 
   const ax = a[0];
   const ay = a[1];
@@ -264,17 +278,52 @@ function incircle(a, b, c, d) {
   const $b = (ay - dy) * (di - fg);
   const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
 	//console.log($a - $b + $c);
-	console.log($a - $b + $c > 0);
+	//console.log($a - $b + $c > 0);
   /*if ($a - $b + $c > 0) {
     det = false;
   }
   return det;*/
-	return ($a - $b + $c) > 0;
+  // stroke(255);
+  // strokeWeight(.5);
+  // circcirc(a, b, c);
+  // if($a - $b + $c < 0) {
+  //   stroke(255, 0, 0);
+  //   strokeWeight(10);
+  //   point(d[0], d[1]);
+  // } else {
+  //   stroke(0, 255, 0);
+  //   strokeWeight(10);
+  //   point(d[0], d[1]);
+  // }
+	return ($a - $b + $c) < 0;
 }
 function valid(a, b) {
   let result = false;
-  if (rightof(a.SYM().DATA, b) && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)) {
+  if (rightof(a.SYM().DATA, b)/* && ccw(a.SYM().DATA, b.SYM().DATA, b.DATA)*/) {
     result = true;
   }
   return result;
+}
+
+function circcirc(a, b, c) {
+  // const p1 = createVector(a.DATA[0], a.DATA[1]);
+  // const p2 = createVector(b.DATA[0], b.DATA[1]);
+  // const p3 = createVector(c.DATA[0], c.DATA[1]);
+  const p1 = createVector(a[0], a[1]);
+  const p2 = createVector(b[0], b[1]);
+  const p3 = createVector(c[0], c[1]);
+
+  const denom = 2 * pow(p5.Vector.cross(p5.Vector.sub(p1, p2), p5.Vector.sub(p2, p3)).mag(), 2);
+  const alpha = (pow(p5.Vector.sub(p2, p3).mag(), 2) * p5.Vector.sub(p1, p2).dot(p5.Vector.sub(p1, p3))) / denom;
+  const beta = (pow(p5.Vector.sub(p1, p3).mag(), 2) * p5.Vector.sub(p2, p1).dot(p5.Vector.sub(p2, p3))) / denom;
+  const gamma = (pow(p5.Vector.sub(p1, p2).mag(), 2) * p5.Vector.sub(p3, p1).dot(p5.Vector.sub(p3, p2))) / denom;
+
+  const center = p5.Vector.add(p5.Vector.mult(p1, alpha), p5.Vector.mult(p2, beta)).add(p5.Vector.mult(p3, gamma));
+  console.log(center);
+  point(center.x, center.y);
+
+  const rad =(p5.Vector.sub(p1, p2).mag() * p5.Vector.sub(p2, p3).mag() * p5.Vector.sub(p3, p1).mag()) / (2 * p5.Vector.cross(p5.Vector.sub(p1, p2), p5.Vector.sub(p2, p3)).mag());
+  noFill();
+  console.log(rad);
+  circle(center.x, center.y, rad * 2);
 }

@@ -10,21 +10,33 @@ class Edges {
     e.cleave(a.LNEXT());
     e.SYM().cleave(b);
     this.S.splice(this.S.length, 0, e);
+    return e;
   }
   destroy(e) {
-    const id = e;
     e.cleave(e.OPREV());
     e.SYM().cleave(e.SYM().OPREV());
-    for (let i = 0; i < this.S.length; i++) {
-      if (e == this.S[i]) {
-	console.log("I'm deleting this one");
-	console.log(e);
-console.log(this.S[i]);
-	stroke(255,0,0);
-	//line(e.DATA[0], e.DATA[1], e.SYM().DATA[0], e.SYM().DATA[1]);
-        this.S.splice(i, 1); 
-      }
+    console.log("let's delete some crap");
+    if (this.S.indexOf(e) == -1) {
+      // stroke(255,0,0);
+  	  // line(e.DATA[0], e.DATA[1], e.SYM().DATA[0], e.SYM().DATA[1]);
+      console.log(this.S.indexOf(e.SYM()));
+      this.S.splice(this.S.indexOf(e.SYM()), 1);
+    } else {
+      // stroke(255,0,0);
+  	  // line(e.DATA[0], e.DATA[1], e.SYM().DATA[0], e.SYM().DATA[1]);
+      console.log(this.S.indexOf(e));
+      this.S.splice(this.S.indexOf(e), 1);
     }
+    // for (let i = 0; i < this.S.length; i++) {
+    //   if (e == this.S[i]) {
+    //   	console.log("I'm deleting this one");
+    //   	console.log(e);
+    //     console.log(this.S[i]);
+	  //     stroke(255,0,0);
+	  //     //line(e.DATA[0], e.DATA[1], e.SYM().DATA[0], e.SYM().DATA[1]);
+    //     this.S.splice(i, 1);
+    //   }
+    // }
   }
   swap(e) {
     //May or may not work?
@@ -64,9 +76,9 @@ class MakeEdge {
     const rot = new MakeEdge();
     const rotsym = new MakeEdge();
     this.r[1] = rot;
-    this.r[3] = rotsym;
+    this.r[3] = rotsym;//rot;
     sym.r[1] = rotsym;
-    sym.r[3] = rot;
+    sym.r[3] = rot;//rotsym;
 
     rot.r[2] = rotsym;
     rotsym.r[2] = rot;
@@ -76,6 +88,22 @@ class MakeEdge {
     rot.r[3] = this;
     rotsym.r[1] = this;
     rotsym.r[3] = sym;
+
+    // const rot = new MakeEdge();
+    // const rotsym = new MakeEdge();
+    // this.r[1] = rot;
+    // this.r[3] = rotsym;
+    // sym.r[1] = rotsym;
+    // sym.r[3] = rot;
+    //
+    // rot.r[2] = rotsym;
+    // rotsym.r[2] = rot;
+    // rot.NEXT = rot;
+    // rotsym.NEXT = rotsym;
+    // rot.r[1] = sym;
+    // rot.r[3] = this;
+    // rotsym.r[1] = this;
+    // rotsym.r[3] = sym;
   }
   ROT(n) {
     return this.r[(n + 1) % 4];
@@ -94,6 +122,8 @@ class MakeEdge {
   }
   INVROT() {
     return this.r[3];
+    //return this.ROT(3);
+    //return this.ROT().SYM();
   }
   ONEXT(n) {
     return this.r[n].NEXT;
