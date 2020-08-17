@@ -45,14 +45,14 @@ The core concept that the algorithm relies upon, and the actual meat of the pape
 
 Let's think about an edge. When we talk about edges we're typically talking about the side of a shape/polygon, in other words, a line connecting two points. Here, we're thinking of edges as subdivisions of a surface.
 
-![A simple edge on a surface](/media/edge.png)
+![A simple edge on a surface](../media/edge.png)
 
 Now, if we had a few edges joined together to form a polygon, we can see how those edges divide the surface to form the face of our polygon.
 
-![We think of 2D shapes like this triangle as having 1 face](/media/polygon.png)
+![We think of 2D shapes like this triangle as having 1 face](../media/polygon.png)
 
 However, we let's focus on that one lone edge. If we imagine that surface it's sitting on as a sphere, rather than a flat plane, we can see how although it is sitting on the surface, it isn't dividing that surface into a left face and a right face, or into the face of a polygon. Instead, it's an edge surrounded by one continuous face.
 
-![A sphere has one face, and this edge doesn't subdivide that face on its own](/media/sphere.png)
+![A sphere has one face, and this edge doesn't subdivide that face on its own](../media/sphere.png)
 
 Let's think about how to describe our edge. What information do we need/want to know about it? Well for starters, this particular edge has a start point and an end point. It is important to note that in this case, those start and end points are different! We could also have an edge where the start and end points are the same, in which case we can think of it as a loop. Notice that in this case, we do actually subdivide the plane into two faces&mdash;the area within the loop, and the area outside of it.
