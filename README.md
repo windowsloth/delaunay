@@ -45,4 +45,4 @@ The core concept that the algorithm relies upon, and the actual meat of the pape
 
 Let's think about an edge. When we talk about edges we're typically talking about the side of a shape/polygon, in other words, a line connecting two points. Here, we're thinking of edges as subdivisions of a surface.
 
-[A simple edge on a surface](/media/edge.png)
+![A simple edge on a surface](/media/edge.png)
