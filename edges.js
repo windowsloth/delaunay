@@ -90,13 +90,13 @@ class MakeEdge {
     this.r = [this, null, null, null];
   }
 
-  setup(org, dest) {
+  setup(start, end) {
 //  This method receives a start point and end point, and uses those to set up
 //  the basic relationships this edge it will have to itself and its dual if it
 //  is a lone edge.
-    this.DATA = org;
+    this.DATA = start;
     const sym = new MakeEdge();
-    sym.DATA = dest;
+    sym.DATA = end;
     this.r[2] = sym;
     sym.r[2] = this;
     sym.NEXT = sym;
@@ -167,7 +167,7 @@ class MakeEdge {
 // These getter methods are what will be used in the actual algorithm itself.
 // The only major changes are that I am using start and end rather than org and
 // dest, just because they're not that much longer as far as variable names go,
-// but it's much more obvious what they mean.  
+// but it's much more obvious what they mean.
   get start() {
     return this.DATA;
   }
