@@ -32,7 +32,6 @@ function delaunay(points) {
 //  THE FIRST POINT TO THE SECOND.
     const a = new MakeEdge();
     a.setup(n[0], n[1]);
-    edges.splice(edges.length, 0, a);
     leftedge = a;
     rightedge = a.opposite;
   } else if (n.length == 3) {
@@ -44,8 +43,6 @@ function delaunay(points) {
     a.setup(n[0], n[1]);
     b.setup(n[1], n[2]);
     a.opposite.cleave(b);
-    edges.splice(edges.length, 0, a);
-    edges.splice(edges.length, 0, b);
 //  THEN CLOSE THE TRIANGLE.
     const c = b.connect(a, edges);
 //  The following if statements ensure that the triangle's points are sorted in
