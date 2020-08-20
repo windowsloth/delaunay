@@ -8,7 +8,6 @@ It is written in JavaScript, but with the intention of being used with p5.js. I 
 
 ```javascript
 const complexity = 24;
-const edges = new Edges();
 const set = [];
 
 function setup() {
@@ -24,11 +23,15 @@ function setup() {
   }
   quicksort(set, 0, complexity - 1, true);
   delaunay(set);
-  edges.show();
+  for (let edge of edges) {
+    strokeWeight(1);
+    stroke(0);
+    line(edge.start[0], edge.start[1], edge.end[0], edge.end[1]);
+  }
 }
 
 function draw() {
 }
 ```
 
-Note that the only things that need to be done in the sketch itself are to set up an array of points ``` set ``` with a size determined by ``` complexity ```, and to create a new Edges object, which will wind up storing all of the edges calculated by the triangulation algorithm. My best attempt at explaining the algorithm and the data structure it is based on, along with a lengthy explanation of my though process when it came to implementing it can be found [here.](/explanation.md)
+Note that the only things that need to be done in the sketch itself are to set up an array of points ``` set ``` with a size determined by ``` complexity ```, and to add a loop that draws all of the edges themselves. These are stored in an array called ``` edges ``` which is by default set up in [edges.js](/edges.js). My best attempt at explaining the algorithm and the data structure it is based on, along with a lengthy explanation of my though process when it came to implementing it can be found [here.](/explanation.md)
