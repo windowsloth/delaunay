@@ -91,7 +91,7 @@ Now that we've taken a quick look at the fact that we can do a fair amount with 
 
 >The first operator is denoted by ``` e&#8592;MakeEdge[] ```. It takes no parameters, and returns an edge ``` e ``` of a newly created data structure representing a subdivision of the sphere. (Guibas & Stolfi, 1985)
 
-I started by creating a ``` MakeEdge ``` class with a few variables in the constructor:
+The edges of our triangulation will exist as instances of the ``` MakeEdge ``` class. Here, I'll briefly go over this class and the methods we'll be using before finally diving into the actual algorithm. The constructor for ``` MakeEdge ``` looks like this:
 
 ```javascript
 class MakeEdge {
@@ -105,10 +105,10 @@ class MakeEdge {
 
 We will use ``` this.DATA ``` to contain the coordinates of that represent ``` e.Org ```, and we will use ``` this.NEXT ``` to store ``` e.Onext ```. Each element of the array ``` this.r ``` contains a reference to one of the four possible positions we can get to using ``` Rot ```. ``` r[0] ``` is assigned to ``` e ```, and the other three elements will get filled in once we define some more information about this edge.
 
-For starters, lets make method to encapsulate some of those basic definitions we'll need to do, starting with giving ``` e ``` an origin and a destination, or for our purposes ``` start ``` and ``` end ```:
+For starters, lets make method to encapsulate some of those basic definitions we'll need to do, starting with giving ``` e ``` an origin and a destination, or for our purposes ``` start ``` and ``` end ```. This method will accept two pieces of information (for our purposes, coordinates representing two points from our set) for ``` start ``` and ``` end ```, as well as an array to store our edge in. The way the algorithm is set up in [triangulation.js](/triangulation.js), it assumes there is an array is called ``` edges ```, just as a default.
 
 ```javascript
-setup(start, end) {
+setup(start, end, arr) {
   this.DATA = start;
   sym = new MakeEdge();
   sym.DATA = end;
@@ -130,7 +130,7 @@ setup(start, end) {
 }
 ```
 
-Again, each element of ``` r ``` is a different number of times to do ``` Rot ```, and as discussed earlier, ``` e.Rot.Rot ``` gives us ``` e.Sym ```. Let's go and fill in those last two slots of ``` r ``` with our dual. Remember that the dual is a loop! That means we need to establish things a bit differently:
+Again, each element of ``` r ``` is a different number of times to do ``` Rot ```, and as discussed earlier, ``` e.rot.rot ``` gives us ``` e.Sym ```. Let's go and fill in those last two slots of ``` r ``` with our dual. Remember that the dual is a loop! That means we need to establish things a bit differently:
 
 ```javascript
 setup(start, end) {
@@ -157,5 +157,121 @@ setup(start, end) {
   rot.r[3] = this;
   rotsym.r[1] = this;
   rotsym.r[3] = sym;
+}
+```
+
+And finally, we will need to add this edge into our ``` edges ``` array, so we'll include this last line:
+
+```javascript
+arr.splice(arr.length, 0, this);
+```
+
+Before getting to the other methods that we'll need to use, let's briefly cover the different getters that we'll use to get all of our navigation references. The naming is all pretty self explanatory, they're the same keywords discussed previously, but the way we find some of them might not be totally obvious. The proofs for how/why all of them work the way they do can be found in the text of the paper, but with the other information I've gone over here you can sort of work your way through how everything fits together visually too.
+
+```
+get rot() {
+  return this.r[1];
+}
+get opposite() {
+  return this.r[2];
+}
+get invrot() {
+  return this.r[3];
+}
+get start() {
+  return this.DATA;
+}
+get end() {
+  return this.opposite.DATA;
+}
+get lnext() {
+   return this.invrot.onext.rot;
+}
+get oprev() {
+  return this.rot.NEXT.rot;
+}
+get onext() {
+  return this.NEXT;
+}
+get rprev() {
+  return this.opposite.onext;
+}
+```
+
+The only real difference here is that for rest of the program, I am using ``` opposite ``` rather than ``` sym ```. I think it's more intuitive and makes some of the more complicated operations/relationships more legible. I also recognize that using ``` sym ``` as a variable name in ``` setup() ``` is a potentially problematic inconsistency, but it doesn't bother me enough to change it (at least not at the time of writing).
+
+The other methods we'll be using will all be operating on existing edges; joining them together, creating new edges to connect existing ones, or deleting existing ones that are not part of the final triangulation. The first of these methods is ``` cleave() ```. In the original paper, it is referred to as ``` splice ```, but because ``` splice() ``` is an existing array method that is also being used in the context of our edges, I decided to go with ``` cleave ```.
+
+>Indeed, ``` Splice ``` is its own inverse: if we perform ``` Splice[a, b] ``` twice in a row we will get back the same subdivision.
+
+This method operates on an edge, and accepts another edge as a parameter. All it does is swap the ``` Onext ``` values for both the two edges and their ``` .rot ``` s. If edges ``` a ``` and ``` b ``` were both created seperately, but share a start point, ``` a.cleave(b); ``` will link them together so that instead of ``` a.onext ``` referring back to ``` a ```, it will now point to ``` b ```, and vice versa. This also works if there are already two edges sharing an origin and we are adding a third edge to the party, by trading ``` NEXT ``` values we can build a "chain" of edges all centered around one starting point.
+
+However, if those edges were already part of a chain&mdash;if they were already cleaved together&mdash;then swapping ``` NEXT ``` values will remove the edge we are operating on from the chain. By breaking that link, we remove the ties that edge has to the other edges around it. Since the word cleave means both to join tightly and to split apart, I thought it was a fitting name for a function that is, as the paper says, its own invervse.
+
+```javascript
+cleave(e) {
+  const newONEXT = e.onext;
+  const currONEXT = this.onext;
+  this.NEXT = newONEXT;
+  e.NEXT = currONEXT;
+
+  const alphaONEXT = e.onext.rot.onext;
+  const betaONEXT = this.onext.rot.onext;
+  this.onext.rot.NEXT = alphaONEXT;
+  e.onext.rot.NEXT = betaONEXT;
+}
+````
+
+``` alphaONEXT ``` and ``` betaONEXT ``` are placeholder's that simply refer to the ``` .rot ``` values of the two edges being operated on.
+
+The next method is ``` connect() ```. It can be slightly confusing, since ``` cleave ``` is in a way connected edges together via their references, but connect takes two seperate edges and creates a new, third edge that joins the two together. It accepts an edge and an array to store the result as its parameters.
+
+```javascript
+connect(a, arr) {
+  const e = new MakeEdge();
+  e.setup(this.end, a.start, arr);
+  e.cleave(this.lnext);
+  e.opposite.cleave(a);
+  return e;
+}
+```
+
+To break that down: we create a new edge, ``` e ``` with a new instance of ``` MakeEdge ```, and then use ``` setup ``` to assign the start point as the end point of the edge we are actually operating on, and the endpoint as the start point of the edge that has been passed in. Then, we cleave the new edge two the original edges so that they all link up properly, and return the result. Now we have a brand new edge that is linked to the edges it connects to!
+
+But what if we no longer need an edge? What if a new edge we've added makes an old edge invalid for the final triangulation? Well, that's what the final method, ``` destroy() ``` is for. In the original paper it is called ``` deleteEdge ```. There is no concrete reason for changing it, it just sounds cooler this way. ``` destroy() ``` accepts an array as its only parameter.
+
+```javascript
+destroy(arr) {
+  this.cleave(this.oprev);
+  this.opposite.cleave(this.opposite.oprev);
+  if (arr.indexOf(this) == -1) {
+    arr.splice(arr.indexOf(this.opposite), 1);
+  } else {
+    arr.splice(arr.indexOf(this), 1);
+  }
+}
+```
+
+As you can probably tell, it functions quite similarly to connect, making use of ``` cleave() ``` to modify links between edges. However, because of the dual nature of ``` cleave ```, this time we are removing an edge from an existing group. Once that is done, we also need to remove it from the array that is storing all the edges, so we search for both the edge and remove it. Note that we did not need to add the edge directly in ``` connect() ```, since that is done when ``` setup() ``` is called.
+
+Now that we have these methods established, we can start putting everything together. It's time to move on to the algorithm itself!
+
+### iii. The Divide-and-Conquer Algorithm
+
+The algorithm itself is called using the function ``` delaunay() ```, which accepts an array of points. It is imporant to note that these points should be sorted by x-value in ascending order! I use a quicksort to do this after generating an array of random points, but you can set up your set of points however works best for you. This function will also ultimately return the left-most and right-most edges of the convex hull formed by the set of points.
+
+Our first task is to determine how many points we are dealing with here and if necessary to start dividing, since this is a divide-and-conquer approach. We want to work with sets of two or three points to start with, so if our array is four points or greater, we will split it into two arrays and recursively call the function again on each half.
+
+```
+delaunay(points) {
+  if (points.length == 2) {
+  }
+  if (points.length == 3) {
+  }
+  if (points.length >= 4) {
+    const split = Math.floor(points.length / 2);
+    let l = points.slice(0, split);
+    let r = points.slice(split + 1, points.length);
+  }
 }
 ```
