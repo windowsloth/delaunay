@@ -14,8 +14,6 @@
 // differences in the naming of variables and functions.
 // These comments will be written in ALL CAPS for clarity.
 
-const edges = [];
-
 function delaunay(points) {
 // The function receives a set of points (sorted by x value in ascending order)
 // and returns two edges: the left-most and right-most edge of the convex hull
@@ -31,7 +29,7 @@ function delaunay(points) {
 //  LET THE TWO POINTS BE TWO SITES, IN SORTED ORDER. CREATE AN EDGE, a, FROM
 //  THE FIRST POINT TO THE SECOND.
     const a = new MakeEdge();
-    a.setup(n[0], n[1]);
+    a.setup(n[0], n[1], edges);
     leftedge = a;
     rightedge = a.opposite;
   } else if (n.length == 3) {
@@ -40,8 +38,8 @@ function delaunay(points) {
  // TO POINT 2.
     const a = new MakeEdge();
     const b = new MakeEdge();
-    a.setup(n[0], n[1]);
-    b.setup(n[1], n[2]);
+    a.setup(n[0], n[1], edges);
+    b.setup(n[1], n[2], edges);
     a.opposite.cleave(b);
 //  THEN CLOSE THE TRIANGLE.
     const c = b.connect(a, edges);
