@@ -227,15 +227,15 @@ class MakeEdge {
     return e;
   }
 
-  static.destroy(e, arr) {
-    e.cleave(e.OPREV());
-    e.SYM().cleave(e.SYM().OPREV());
+  destroy(arr) {
+    this.cleave(this.OPREV());
+    this.SYM().cleave(this.SYM().OPREV());
 //  Rather than simply disconnecting the edge from its former neighbors, we also
 //  must remove it from our array since it is no longer needed.
-    if (arr.indexOf(e) == -1) {
-      arr.splice(arr.indexOf(e.SYM()), 1);
+    if (arr.indexOf(this) == -1) {
+      arr.splice(arr.indexOf(this.SYM()), 1);
     } else {
-      arr.splice(arr.indexOf(e), 1);
+      arr.splice(arr.indexOf(this), 1);
     }
   }
 }
