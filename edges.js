@@ -13,46 +13,6 @@
 // for differences in the naming of variables and functions.
 // These comments will be written in ALL CAPS for clarity.
 
-class Edges {
-  constructor() {
-//  Create an arra to store all of the edges we create.
-//  Edges are added manually at the time of writing, but this may be changed so
-//  that it occurs as part of the setup() method in MakeEdge.
-    this.S = [];
-  }
-
-  connect(a, b) {
-    const e = new MakeEdge();
-    e.setup(a.SYM().DATA, b.DATA);
-    e.cleave(a.LNEXT());
-    e.SYM().cleave(b);
-    this.S.splice(this.S.length, 0, e);
-    return e;
-  }
-
-  destroy(e) {
-    e.cleave(e.OPREV());
-    e.SYM().cleave(e.SYM().OPREV());
-//  Rather than simply disconnecting the edge from its former neighbors, we also
-//  must remove it from our array since it is no longer needed.
-    if (this.S.indexOf(e) == -1) {
-      this.S.splice(this.S.indexOf(e.SYM()), 1);
-    } else {
-      this.S.splice(this.S.indexOf(e), 1);
-    }
-  }
-
-  show() {
-//  A p5.js function that shows all of the edges. May be removed since it can be
-//  done just easily in a p5.js sketch outside of this class.
-    for (let edge of this.S) {
-      strokeWeight(1);
-      stroke(255);
-      line(edge.DATA[0],edge.DATA[1],edge.SYM().DATA[0],edge.SYM().DATA[1]);
-    }
-  }
-}
-
 class MakeEdge {
   constructor() {
 //  "Each part e [r] of an edge record contains two fields, DATA and NEXT.
@@ -221,10 +181,9 @@ class MakeEdge {
   
   connect(a, arr) {
     const e = new MakeEdge();
-    e.setup(this.SYM().DATA, a.DATA);
+    e.setup(this.SYM().DATA, a.DATA, arr);
     e.cleave(this.LNEXT());
     e.SYM().cleave(a);
-    arr.splice(arr.length, 0, e);
     arr.splice(arr.length, 0, e);
     return e;
   }
@@ -234,10 +193,12 @@ class MakeEdge {
     this.SYM().cleave(this.SYM().OPREV());
 //  Rather than simply disconnecting the edge from its former neighbors, we also
 //  must remove it from our array since it is no longer needed.
-    if (arr.indexOf(this) == -1) {
-      arr.splice(arr.indexOf(this.SYM()), 1);
-    } else {
-      arr.splice(arr.indexOf(this), 1);
+    while (arr.indexOf(this) > -1 || arr.indexOf(this.opposite) > -1) {
+      if (arr.indexOf(this) == -1) {
+        arr.splice(arr.indexOf(this.SYM()), 1);
+      } else {
+        arr.splice(arr.indexOf(this), 1);
+      }
     }
   }
 }
