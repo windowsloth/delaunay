@@ -122,7 +122,7 @@ class MakeEdge {
     rot.r[3] = this;
     rotsym.r[1] = this;
     rotsym.r[3] = sym;
-    edges.splice(edges.length, 0, this);
+    arr.splice(arr.length, 0, this);
   }
 // The following methods are all used to determine the various relationships
 // that our edge has with itself/other edges. The methods themselves use names
@@ -225,7 +225,7 @@ class MakeEdge {
     e.cleave(this.LNEXT());
     e.SYM().cleave(a);
     arr.splice(arr.length, 0, e);
-    edges.splice(edges.length, 0, e);
+    arr.splice(arr.length, 0, e);
     return e;
   }
 
