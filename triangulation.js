@@ -14,8 +14,6 @@
 // differences in the naming of variables and functions.
 // These comments will be written in ALL CAPS for clarity.
 
-const edges = [];
-
 function delaunay(points) {
 // The function receives a set of points (sorted by x value in ascending order)
 // and returns two edges: the left-most and right-most edge of the convex hull
