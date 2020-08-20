@@ -90,7 +90,7 @@ class MakeEdge {
     this.r = [this, null, null, null];
   }
 
-  setup(start, end) {
+  setup(start, end, arr) {
 //  This method receives a start point and end point, and uses those to set up
 //  the basic relationships this edge it will have to itself and its dual if it
 //  is a lone edge.
@@ -122,6 +122,7 @@ class MakeEdge {
     rot.r[3] = this;
     rotsym.r[1] = this;
     rotsym.r[3] = sym;
+    edges.splice(edges.length, 0, this);
   }
 // The following methods are all used to determine the various relationships
 // that our edge has with itself/other edges. The methods themselves use names
@@ -224,6 +225,7 @@ class MakeEdge {
     e.cleave(this.LNEXT());
     e.SYM().cleave(a);
     arr.splice(arr.length, 0, e);
+    edges.splice(edges.length, 0, e);
     return e;
   }
 
