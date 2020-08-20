@@ -14,6 +14,8 @@
 // differences in the naming of variables and functions.
 // These comments will be written in ALL CAPS for clarity.
 
+const edges = [];
+
 function delaunay(points) {
 // The function receives a set of points (sorted by x value in ascending order)
 // and returns two edges: the left-most and right-most edge of the convex hull
@@ -30,7 +32,7 @@ function delaunay(points) {
 //  THE FIRST POINT TO THE SECOND.
     const a = new MakeEdge();
     a.setup(n[0], n[1]);
-    edges.S.splice(edges.S.length, 0, a);
+    edges.splice(edges.length, 0, a);
     leftedge = a;
     rightedge = a.opposite;
   } else if (n.length == 3) {
@@ -42,10 +44,10 @@ function delaunay(points) {
     a.setup(n[0], n[1]);
     b.setup(n[1], n[2]);
     a.opposite.cleave(b);
-    edges.S.splice(edges.S.length, 0, a);
-    edges.S.splice(edges.S.length, 0, b);
+    edges.splice(edges.length, 0, a);
+    edges.splice(edges.length, 0, b);
 //  THEN CLOSE THE TRIANGLE.
-    const c = edges.connect(b, a);
+    const c = b.connect(a, edges);
 //  The following if statements ensure that the triangle's points are sorted in
 //  counter-clockwise order, which is important for orienting the edges, and to
 //  make sure that the incircle() test will work properly.
@@ -125,7 +127,7 @@ function delaunay(points) {
       while(valid(lmaybe, base)
         && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
         let temp = lmaybe.onext;
-        edges.destroy(lmaybe);
+        lmaybe.destroy(edges);
         lmaybe = temp;
       }
 //    SYMMETRICALLY, LOCATE THE FIRST r POINT TO BE HIT, AND DELETE r EDGES
@@ -137,7 +139,7 @@ function delaunay(points) {
       while(valid(rmaybe, base)
         && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
         let temp = rmaybe.oprev;
-        edges.destroy(rmaybe);
+        rmaybe.destroy(edges);
         rmaybe = temp;
       }
 //    IF BOTH lmaybe AND rmaybe ARE INVALID, THEN base IS THE UPPER COMMON
@@ -160,12 +162,12 @@ function delaunay(points) {
       if (valid(lmaybe, base)) {
         if (valid(rmaybe, base)
         && incircle(lmaybe.end, lmaybe.start, rmaybe.start, rmaybe.end)) {
-          base = edges.connect(rmaybe, base.opposite);
+          base = rmaybe.connect(base.opposite, edges);
         } else {
-          base = edges.connect(base.opposite, lmaybe.opposite);
+          base = base.opposite.connect(lmaybe.opposite, edges);
         }
       } else {
-        base = edges.connect(rmaybe, base.opposite);
+        base = rmaybe.connect(base.opposite, edges);
       }
 //    Now all that's left is to return what the left and right-most edges of the
 //    resulting polygon are.
