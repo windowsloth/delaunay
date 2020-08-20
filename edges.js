@@ -217,4 +217,25 @@ class MakeEdge {
     this.ONEXT().ROT().NEXT = alphaONEXT;
     e.ONEXT().ROT().NEXT = betaONEXT;
   }
+  
+  connect(a, arr) {
+    const e = new MakeEdge();
+    e.setup(this.SYM().DATA, a.DATA);
+    e.cleave(this.LNEXT());
+    e.SYM().cleave(a);
+    arr.splice(arr.length, 0, e);
+    return e;
+  }
+
+  static.destroy(e, arr) {
+    e.cleave(e.OPREV());
+    e.SYM().cleave(e.SYM().OPREV());
+//  Rather than simply disconnecting the edge from its former neighbors, we also
+//  must remove it from our array since it is no longer needed.
+    if (this.S.indexOf(e) == -1) {
+      arr.splice(arr.indexOf(e.SYM()), 1);
+    } else {
+      arr.splice(arr.indexOf(e), 1);
+    }
+  }
 }
