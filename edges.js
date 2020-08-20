@@ -232,7 +232,7 @@ class MakeEdge {
     e.SYM().cleave(e.SYM().OPREV());
 //  Rather than simply disconnecting the edge from its former neighbors, we also
 //  must remove it from our array since it is no longer needed.
-    if (this.S.indexOf(e) == -1) {
+    if (arr.indexOf(e) == -1) {
       arr.splice(arr.indexOf(e.SYM()), 1);
     } else {
       arr.splice(arr.indexOf(e), 1);
