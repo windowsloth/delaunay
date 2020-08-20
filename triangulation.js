@@ -100,7 +100,7 @@ function delaunay(points) {
 //  just drew, can be considered the new leftoutside or rightoutside edge of the
 //  larger hull that we're in the process of creating by combining l and r (the
 //  left and right halves of the set of points).
-    let base = edges.connect(rightinside.opposite, leftinside);
+    let base = rightinside.opposite.connect(leftinside, edges);
     if (leftinside.start == leftoutside.start) {
       leftoutside = base.opposite;
     }
