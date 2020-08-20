@@ -18,38 +18,34 @@ function delaunay(points) {
 // The function receives a set of points (sorted by x value in ascending order)
 // and returns two edges: the left-most and right-most edge of the convex hull
 // formed by the set of points.
-  const n = [];
-  for (p of points) {
-     n.splice(n.length, 0, p);
-  }
   let leftedge;
   let rightedge;
 
-  if (n.length == 2) {
+  if (points.length == 2) {
 //  LET THE TWO POINTS BE TWO SITES, IN SORTED ORDER. CREATE AN EDGE, a, FROM
 //  THE FIRST POINT TO THE SECOND.
     const a = new MakeEdge();
-    a.setup(n[0], n[1], edges);
+    a.setup(points[0], points[1], edges);
     leftedge = a;
     rightedge = a.opposite;
-  } else if (n.length == 3) {
+  } else if (points.length == 3) {
 //  LET THE THREE POINTS BE THREE SITES, IN SORTED ORDER.
 //  CREATE EDGE a CONNECTING POINT 0 TO POINT 1, AND EDGE b CONNECTING POINT 1
  // TO POINT 2.
     const a = new MakeEdge();
     const b = new MakeEdge();
-    a.setup(n[0], n[1], edges);
-    b.setup(n[1], n[2], edges);
+    a.setup(points[0], points[1], edges);
+    b.setup(points[1], points[2], edges);
     a.opposite.cleave(b);
 //  THEN CLOSE THE TRIANGLE.
     const c = b.connect(a, edges);
 //  The following if statements ensure that the triangle's points are sorted in
 //  counter-clockwise order, which is important for orienting the edges, and to
 //  make sure that the incircle() test will work properly.
-    if (ccw(n[0], n[1], n[2])) {
+    if (ccw(points[0], points[1], points[2])) {
       leftedge = a;
       rightedge = b.opposite;
-    } else if (ccw(n[0], n[2], n[1])) {
+    } else if (ccw(points[0], points[2], points[1])) {
       leftedge = c.opposite;
       rightedge = c;
     } else {
@@ -57,11 +53,11 @@ function delaunay(points) {
       leftedge = a;
       rightedge = b.opposite;
     }
-  } else if (n.length >= 4) {
+  } else if (points.length >= 4) {
 //  LET l AND r BE THE LEFT AND RIGHT HALVES OF THE SET OF POINTS.
     const split = Math.floor(points.length / 2);
-    let l = points.splice(0, split);
-    let r = points;
+    let l = points.slice(0, split);
+    let r = points.slice(split, points.length);
 //  We'll recursively run this function again on each half, continuing to divide
 //  until we're working with just sets of 2 or 3 points, and then we'll put each
 //  of those sets together into bigger and bigger polygons until we've just got
