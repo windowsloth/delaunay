@@ -9,6 +9,7 @@ It is written in JavaScript, but with the intention of being used with p5.js. I 
 ```javascript
 const complexity = 24;
 const set = [];
+const edges = [];
 
 function setup() {
   noLoop();
@@ -34,4 +35,4 @@ function draw() {
 }
 ```
 
-Note that the only things that need to be done in the sketch itself are to set up an array of points ``` set ``` with a size determined by ``` complexity ```, and to add a loop that draws all of the edges themselves. These are stored in an array called ``` edges ``` which is by default set up in [edges.js](/edges.js). My best attempt at explaining the algorithm and the data structure it is based on, along with a lengthy explanation of my though process when it came to implementing it can be found [here.](/explanation.md)
+Note that the only things that need to be done in the sketch itself are to set up an array of points ``` set ``` with a size determined by ``` complexity ```, and to set up an array to store all of the edges calculated by the triangulation algorithm. By default, the algorithm asssumes this array will be called ``` edges ```, but this can be modified by changing the array that is passed to some of the MakeEdge methods within the algorithm. My best attempt at explaining the algorithm and the data structure it is based on, along with a lengthy explanation of my thought process when it came to implementing it can be found [here.](/explanation.md)
