@@ -89,66 +89,37 @@ class MakeEdge {
 // based upon the naming conventions used in the paper, but in order to increase
 // legibility there are some getter functions that use different, hopefully more
 // intuitive names.
-  ROT(n) {
-    return this.r[(n + 1) % 4];
-  }
-  ROT() {
-    return this.r[1];
-  }
-  SYM(n) {
-    return this.r[(n + 2) % 4];
-  }
-  SYM() {
-    return this.r[2];
-  }
-  INVROT(n) {
-    return this.r[(n + 3) % 4];
-  }
-  INVROT() {
-    return this.r[3];
-  }
-  ONEXT(n) {
-    return this.r[n].NEXT;
-  }
-  ONEXT() {
-    return this.NEXT;
-  }
-  OPREV(n) {
-    return this.r[(n + 1) % 4].NEXT.ROT();
-  }
-  OPREV() {
-    return this.ROT().NEXT.ROT();
-  }
-  LNEXT() {
-    return this.INVROT().ONEXT().ROT();
-  }
-  RPREV() {
-    return this.SYM().ONEXT();
-  }
+//
 // These getter methods are what will be used in the actual algorithm itself.
 // The only major changes are that I am using start and end rather than org and
 // dest, just because they're not that much longer as far as variable names go,
 // but it's much more obvious what they mean.
+  get rot() {
+    return this.r[1];
+  }
+  get opposite() {
+    return this.r[2];
+  }
+  get invrot() {
+    return this.r[3];
+  }
   get start() {
     return this.DATA;
   }
   get end() {
-    return this.SYM().DATA;
-  }
-  get opposite() {
-    return this.SYM();
+    return this.opposite.DATA;
   }
   get lnext() {
-    return this.LNEXT();
+   return this.invrot.onext.rot;
   }
   get oprev() {
-    return this.OPREV();
+    return this.rot.NEXT.rot;
   }
   get onext() {
-    return this.ONEXT();
+    return this.NEXT;
   }
   get rprev() {
-    return this.RPREV();
+    return this.opposite.onext;
   }
 
   cleave(e) {
@@ -168,37 +139,34 @@ class MakeEdge {
 //  other, swapping each other's NEXT values. This either makes them next to
 //  one another around the same origin, or it splits them up so they are no
 //  longer next to one another.
-    const newONEXT = e.ONEXT();
-    const currONEXT = this.ONEXT();
+    const newONEXT = e.onext;
+    const currONEXT = this.onext;
     this.NEXT = newONEXT;
     e.NEXT = currONEXT;
 
-    const alphaONEXT = e.ONEXT().ROT().ONEXT();
-    const betaONEXT = this.ONEXT().ROT().ONEXT();
-    this.ONEXT().ROT().NEXT = alphaONEXT;
-    e.ONEXT().ROT().NEXT = betaONEXT;
+    const alphaONEXT = e.onext.rot.onext;
+    const betaONEXT = this.onext.rot.onext;
+    this.onext.rot.NEXT = alphaONEXT;
+    e.onext.rot.NEXT = betaONEXT;
   }
   
   connect(a, arr) {
     const e = new MakeEdge();
-    e.setup(this.SYM().DATA, a.DATA, arr);
-    e.cleave(this.LNEXT());
-    e.SYM().cleave(a);
-    arr.splice(arr.length, 0, e);
+    e.setup(this.end, a.start, arr);
+    e.cleave(this.lnext);
+    e.opposite.cleave(a);
     return e;
   }
 
   destroy(arr) {
-    this.cleave(this.OPREV());
-    this.SYM().cleave(this.SYM().OPREV());
+    this.cleave(this.oprev);
+    this.opposite.cleave(this.opposite.oprev);
 //  Rather than simply disconnecting the edge from its former neighbors, we also
 //  must remove it from our array since it is no longer needed.
-    while (arr.indexOf(this) > -1 || arr.indexOf(this.opposite) > -1) {
-      if (arr.indexOf(this) == -1) {
-        arr.splice(arr.indexOf(this.SYM()), 1);
-      } else {
-        arr.splice(arr.indexOf(this), 1);
-      }
+    if (arr.indexOf(this) == -1) {
+      arr.splice(arr.indexOf(this.opposite), 1);
+    } else {
+      arr.splice(arr.indexOf(this), 1);
     }
   }
 }
