@@ -42,14 +42,10 @@ function delaunay(points) {
 //  The following if statements ensure that the triangle's points are sorted in
 //  counter-clockwise order, which is important for orienting the edges, and to
 //  make sure that the incircle() test will work properly.
-    if (ccw(points[0], points[1], points[2])) {
-      leftedge = a;
-      rightedge = b.opposite;
-    } else if (ccw(points[0], points[2], points[1])) {
+    if (rightof(points[2], a)) {
       leftedge = c.opposite;
       rightedge = c;
     } else {
-//    THE THREE POINTS ARE COLINEAR.
       leftedge = a;
       rightedge = b.opposite;
     }
@@ -63,12 +59,12 @@ function delaunay(points) {
 //  of those sets together into bigger and bigger polygons until we've just got
 //  one big, juicy polygon, which is the delaunay triangulation of our starting
 //  set of points.
-    leftedge = delaunay(l);
-    rightedge = delaunay(r);
-    let leftoutside = leftedge[0];
-    let leftinside = leftedge[1];
-    let rightinside = rightedge[0];
-    let rightoutside = rightedge[1];
+    const lefthalf = delaunay(l);
+    const righthalf = delaunay(r);
+    let leftoutside = lefthalf[0];
+    let leftinside = lefthalf[1];
+    let rightinside = righthalf[0];
+    let rightoutside = righthalf[1];
 //  COMPUTE THE LOWER COMMON TANGENT OF l AND r.
 //
 //  Eseentially, just make sure that the right edge of the left half
