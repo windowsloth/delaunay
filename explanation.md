@@ -163,12 +163,12 @@ setup(start, end) {
 And finally, we will need to add this edge into our ``` edges ``` array, so we'll include this last line:
 
 ```javascript
-arr.splice(arr.length, 0, this);
+arr.push(this);
 ```
 
 Before getting to the other methods that we'll need to use, let's briefly cover the different getters that we'll use to get all of our navigation references. The naming is all pretty self explanatory, they're the same keywords discussed previously, but the way we find some of them might not be totally obvious. The proofs for how/why all of them work the way they do can be found in the text of the paper, but with the other information I've gone over here you can sort of work your way through how everything fits together visually too.
 
-```
+```javascript
 get rot() {
   return this.r[1];
 }
@@ -220,9 +220,9 @@ cleave(e) {
   this.onext.rot.NEXT = alphaONEXT;
   e.onext.rot.NEXT = betaONEXT;
 }
-````
+```
 
-``` alphaONEXT ``` and ``` betaONEXT ``` are placeholder's that simply refer to the ``` .rot ``` values of the two edges being operated on.
+The variables ``` alphaONEXT ``` and ``` betaONEXT ``` are placeholder's that simply refer to the ``` .rot ``` values of the two edges being operated on.
 
 The next method is ``` connect() ```. It can be slightly confusing, since ``` cleave ``` is in a way connected edges together via their references, but connect takes two seperate edges and creates a new, third edge that joins the two together. It accepts an edge and an array to store the result as its parameters.
 
@@ -260,18 +260,147 @@ Now that we have these methods established, we can start putting everything toge
 
 The algorithm itself is called using the function ``` delaunay() ```, which accepts an array of points. It is imporant to note that these points should be sorted by x-value in ascending order! I use a quicksort to do this after generating an array of random points, but you can set up your set of points however works best for you. This function will also ultimately return the left-most and right-most edges of the convex hull formed by the set of points.
 
-Our first task is to determine how many points we are dealing with here and if necessary to start dividing, since this is a divide-and-conquer approach. We want to work with sets of two or three points to start with, so if our array is four points or greater, we will split it into two arrays and recursively call the function again on each half.
+Our first task is to determine how many points we are dealing with here and if necessary to start dividing, since this is a divide-and-conquer approach. We want to work with sets of two or three points to start with, so if our array is four points or greater, we will split it into two arrays and recursively call the function again on each half. We also ned to return those left-most and right-most edges, so let's declare those variables now as well:
 
-```
+```javascript
 delaunay(points) {
+  let leftedge;
+  let rightedge;
+  
   if (points.length == 2) {
-  }
-  if (points.length == 3) {
-  }
-  if (points.length >= 4) {
+    //...
+  } else if (points.length == 3) {
+    //...
+  } else if (points.length >= 4) {
     const split = Math.floor(points.length / 2);
     let l = points.slice(0, split);
     let r = points.slice(split + 1, points.length);
+    leftedge = delaunay(l);
+    rightedge = delaunay(r);
   }
 }
 ```
+
+Eventually, we will get down to only groups of two or three points, at which point we can start building edges between them, and then we will start merging those smaller chunks into larger and larger shapes. If we only have two points, then we can just connect them from left to right.
+
+```javascript
+if (points.length == 2) {
+  const a = new MakeEdge();
+  a.setup(points[0], points[1], edges);
+  leftedge = a;
+  rightedge = a.opposite;
+}
+```
+
+Note that since two points only forms one edge, we have to use ``` a.opposite ``` in addition to just ``` a ``` in order to return two different edges. The procedure for three points is a bit more complicated. We start out by simply connecting the points in order of x value (``` point[0] ``` to ``` point[1] ```, ``` point[1] ``` to ``` point[2] ```, ``` point[2] ``` to back to ``` point[0] ```), but then we need to make sure we return the proper ``` leftedge ``` and ``` rightedge ``` values. We do this by testing ``` point[2] ``` to see if it is on the right side or the left side of the edge formed by ``` point[0] ``` and ``` point[1] ```. In effect, this tells us if drawing the edges in order of x value arranges the sides in a counter-clockwise order around their centroid. This is important because we want to know which edges are the outside edges, and also which way those edges are oriented.
+
+The original paper uses a specific counter clockwise test, but I had issues getting it work reliably (most likely due to my having done the math involved incorrectly), but I didn't spend too much time struggling with it because there is another way to test for the same information. We can take the cross product of the vectors formed by the ``` start ``` and ``` end ``` values of the edges in question and determine their how they are arranged based on whether or not the result is negative. This is a test we actually will wind up needing later, so let's write it as a function. The way I've written it, it accepts an edge and a point, and returns true if the point is on the right side of the edge.
+
+```javascript
+function rightof(p, e) {
+  let x = [e.end[0] - e.start[0], e.end[1] - e.start[1]];
+  let y = [p[0] - e.start[0], p[1] - e.start[1]];
+  return x[0] * y[1] - x[1] * y[0] > 0;
+}
+```
+
+Now that we have this test, let's create the edges between our three points, and then make use of the test to figure out which edges we need to return:
+
+```javascript
+else if (points.length == 3) {
+  const a = new MakeEdge();
+  const b = new MakeEdge();
+  a.setup(points[0], points[1], edges);
+  b.setup(points[1], points[2], edges);
+  a.opposite.cleave(b);
+  const c = b.connect(a, edges);
+  if (rightof(point[2], a) {
+    leftedge = c.opposite;
+    rightedge = c
+  } else {
+    leftedge = a;
+    rightedge = b.opposite;
+  }
+}
+```
+
+This also takes care of the rare event where the three points are coolinear, in which case we would want to return ``` a ``` and ``` b.opposite ```. This concept of making sure we return the correct edges in the correct orientation comes up a few times in this algorithm; we always want to make sure we're keeping track of the orientation of the edges we're working with because that affects how we use the edge references to navigate through the triangulation. Since the algorithm is recursive, we wind up doing a lot of these steps many times, and we need to make sure the references we are using will always be correct.
+
+For example, now that we've figured out what to do with one two/three point groups, we can start to set up the process of merging them together. If we have two groups of points next to each other, we need to find the *inside edges,* or the sides of the shapes that are facing one another. We're also going to find the outside edges, since those will come back into play later, when we come back to ``` leftedge ``` and ``` rightedge ```.
+
+```javascript
+else if (points.length >= 4) {
+  const split = Math.floor(points.length / 2);
+  let l = points.slice(0, split);
+  let r = points.slice(split + 1, points.length);
+  const lefthalf = delaunay(l);
+  const righthalf = delaunay(r);
+  
+  let leftoutside = lefthalf[0];
+  let leftinside = lefthalf[1];
+  let rightinside = righthalf[0];
+  let rightoutside = righthalf[1];
+}
+```
+
+To clarify, we've got the ``` leftedge ``` returned by the triangulation of the left half of our set of points stored in ``` leftoutside ``` and the ``` rightedge ``` of stored in ``` leftinside ```, and the same for the right half of the points. Now that we've specified which edges are on the inside and need to be connected, we need to make sure that we have them both oriented in the proper way. In this case, finding that orientation will also allow us to find the lowest point on the inside edge of both shapes.
+
+```javascript
+ while(true) {
+  if (!rightof(rightinside.start, leftinside)) {
+    leftinside = leftinside.lnext;
+  } else if (rightof(leftinside.start, rightinside)) {
+    rightinside = rightinside.rprev;
+  } else {
+    break;
+  }
+}
+```
+
+This while loop will run until both of the edges are oriented properly. It just rewrites the values of ``` leftinside ``` and ``` rightinside ``` by looping around the two shapes formed by the left and right half of the points until eventually it finds the bottom most edges. This is why we need to make sure to return the correct values for ``` leftedge ``` and ``` rightedge ```, otherwise loops like this won't work correctly. This was actually the last step I debugged before I got the program working fully for the first time, I had this loop set up incorrectly, but it would still solve the triangulation with smaller sets of points. The issues didn't present themselves until there were more edges to work with, and more places for something to get oriented wrong and throw off the whole balance.
+
+But now that we've established our lowest point (our lowest common tangent, to use the terminology that Guibas and Stolfi use), it's time to start begin merging the shapes. This step will actually loop over and over until all the connecting edges between the shapes have been drawn, and it can be a little bit hard to visualize what's happening, so I'll explain it briefly here and then dive into each individual sub-step.
+
+First, we connect the lower common tangents, and set the values of ``` leftedge ``` and ``` rightedge ``` if necessary, since occasionally this first connecting edge (which we'll call ``` base ```) qualifies as being one of those two outer edges. Then, we need to figure out where the next connection will be drawn. We know it will need to have one endpoint that belongs to either the left half or the right half, and since we're trying to draw triangles, it will need to connect to one of the endpoints of ``` base ```. The way Guibas and Stolfi explain how we determine which point from which half of the set we use is by visualizing a circle where ``` base ``` is the diameter. If we were to start making that circle larger while keeping the endpoints of ``` base ``` on its perimeter, the first point we encounter from our set will be one of the points for our new connection, and whichever side of ``` base ``` connects to the opposite half will be the other. They refer to this as the *rising bubble,* and we can see visually how it might look below.
+
+![This is the so-called rising bubble](/risingbubble.png)
+
+Then this step is repeated until there are no more points for the bubble to encounter (in other words, once we've reached the top edge). That's all there is to it!
+
+Of course, coding this is a little bit more abstract than just drawing circles, but we will need to think about circles a little bit. One of the side effects of connecting our two halves means that some of the edges we drew in previous steps are not actually valid for the final triangulation. Sometimes the point we wind up finding with our rising bubble has edges attached to it that will need to be deleted. Luckily, Guibas and Stolfi have a clever little test that lets us see if a point will create conflicting edges. It is referred to as the ``` incircle ``` test, and we need to quickly write a function for it.
+
+This function receives a four points, the first three make up a triangle sorted in counter-clockwise order (another spot where making sure our orientation is correct is important!) and the fourth being the point we want to test. If that fourth point is within the circle formed by the first three points, the test will return false. If it returns true, then the fourth point is not within the circle. Mathematically, all this test entails is taking the determinant of the following matrix:
+
+![the "incircle" test](/incircle.png)
+
+The code for that might look like the following:
+
+```javascript
+function incircle(a, b, c, d) {
+  const ax = a[0];
+  const ay = a[1];
+  const bx = b[0];
+  const by = b[1];
+  const cx = c[0];
+  const cy = c[1];
+  const dx = d[0];
+  const dy = d[1];
+
+  const ei = (by - dy) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fh = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cy - dy);
+  const di = (bx - dx) * (Math.pow(cx - dx, 2) + Math.pow(cy - dy, 2));
+  const fg = (Math.pow(bx - dx, 2) + Math.pow(by - dy, 2)) * (cx - dx);
+  const dh = (bx - dx) * (cy - dy);
+  const eg = (by - dy) * (cx - dx);
+
+  const $a = (ax - dx) * (ei - fh);
+  const $b = (ay - dy) * (di - fg);
+  const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
+	return ($a - $b + $c) < 0;
+}
+```
+
+Once we've identified that a point has an edge we do not want, we can use ``` destroy() ``` to remove it from our ``` edges ``` array and ensure it does not get drawn.
+
+Now that that very quick overview is done, lets get back into the algorithm itself. We'll being by starting a loop and drawing our ``` base ```:
+
