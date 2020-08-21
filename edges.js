@@ -82,7 +82,7 @@ class MakeEdge {
     rot.r[3] = this;
     rotsym.r[1] = this;
     rotsym.r[3] = sym;
-    arr.splice(arr.length, 0, this);
+    arr.push(this);
   }
 // The following methods are all used to determine the various relationships
 // that our edge has with itself/other edges. The methods themselves use names
