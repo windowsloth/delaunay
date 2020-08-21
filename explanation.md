@@ -159,4 +159,3 @@ setup(start, end) {
   rotsym.r[3] = sym;
 }
 ```
-asdfsdf
