@@ -396,7 +396,7 @@ function incircle(a, b, c, d) {
   const $a = (ax - dx) * (ei - fh);
   const $b = (ay - dy) * (di - fg);
   const $c = (Math.pow(ax - dx, 2) + Math.pow(ay - dy, 2)) * (dh - eg);
-	return ($a - $b + $c) < 0;
+  return ($a - $b + $c) < 0;
 }
 ```
 
