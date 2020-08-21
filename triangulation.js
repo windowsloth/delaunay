@@ -241,11 +241,7 @@ function incircle(a, b, c, d) {
 // that version of the test, and used this one that I was able to quickly get
 // more reliable results from.
 function valid(a, b) {
-  let result = false;
-  if (rightof(a.end, b)) {
-    result = true;
-  }
-  return result;
+  return rightof(a.end, b);
 }
 // Added for debugging purposes, this visualizes the circumcircle of 3 points.
 function circcirc(a, b, c) {
