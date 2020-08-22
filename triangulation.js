@@ -111,11 +111,10 @@ function delaunay(points) {
 //    edge becomes lmaybe and we run the test again until either the circle is
 //    free of points, or we run out of edges in l that are above edge base.
       let lmaybe = base.opposite.onext;
-      while(valid(lmaybe, base)
+      while(rightof(lmaybe.end, base)
         && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
-        let temp = lmaybe.onext;
         lmaybe.destroy(edges);
-        lmaybe = temp;
+        lmaybe = lmaybe.onext;
       }
 //    SYMMETRICALLY, LOCATE THE FIRST r POINT TO BE HIT, AND DELETE r EDGES
 //
@@ -123,11 +122,10 @@ function delaunay(points) {
 //    with our circle, we're checking the previous edge. Again, it's the same
 //    steps that we did for lmaybe, we just need to mirror them for rmaybe.
       let rmaybe = base.oprev;
-      while(valid(rmaybe, base)
+      while(rightof(rmaybe.end, base)
         && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
-        let temp = rmaybe.oprev;
         rmaybe.destroy(edges);
-        rmaybe = temp;
+        rmaybe = rmaybe.oprev;
       }
 //    IF BOTH lmaybe AND rmaybe ARE INVALID, THEN base IS THE UPPER COMMON
 //    TANGENT.
@@ -146,9 +144,9 @@ function delaunay(points) {
 //    Sometimes, both lmaybe and rmaybe will be valid, and in that case, we
 //    see which one is closer to base by seeing if rmaybe is within the circle
 //    that passes through lmaybe.end, lmaybe.start, and rmaybe.start.
-      if (valid(lmaybe, base)) {
-        if (valid(rmaybe, base)
-        && incircle(lmaybe.end, lmaybe.start, rmaybe.start, rmaybe.end)) {
+      if (rightof(lmaybe.end, base)) {
+        if (rightof(rmaybe.end, base)
+          && incircle(lmaybe.end, base.end, base.start, rmaybe.end)) {
           base = rmaybe.connect(base.opposite, edges);
         } else {
           base = base.opposite.connect(lmaybe.opposite, edges);

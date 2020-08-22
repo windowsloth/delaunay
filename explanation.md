@@ -266,7 +266,7 @@ Our first task is to determine how many points we are dealing with here and if n
 delaunay(points) {
   let leftedge;
   let rightedge;
-  
+
   if (points.length == 2) {
     //...
   } else if (points.length == 3) {
@@ -314,7 +314,7 @@ else if (points.length == 3) {
   b.setup(points[1], points[2], edges);
   a.opposite.cleave(b);
   const c = b.connect(a, edges);
-  if (rightof(point[2], a) {
+  if (rightof(point[2], a)) {
     leftedge = c.opposite;
     rightedge = c
   } else {
@@ -324,7 +324,7 @@ else if (points.length == 3) {
 }
 ```
 
-This also takes care of the rare event where the three points are coolinear, in which case we would want to return ``` a ``` and ``` b.opposite ```. This concept of making sure we return the correct edges in the correct orientation comes up a few times in this algorithm; we always want to make sure we're keeping track of the orientation of the edges we're working with because that affects how we use the edge references to navigate through the triangulation. Since the algorithm is recursive, we wind up doing a lot of these steps many times, and we need to make sure the references we are using will always be correct.
+This also takes care of the rare event where the three points are collinear, in which case we would want to return ``` a ``` and ``` b.opposite ```. This concept of making sure we return the correct edges in the correct orientation comes up a few times in this algorithm; we always want to make sure we're keeping track of the orientation of the edges we're working with because that affects how we use the edge references to navigate through the triangulation. Since the algorithm is recursive, we wind up doing a lot of these steps many times, and we need to make sure the references we are using will always be correct.
 
 For example, now that we've figured out what to do with one two/three point groups, we can start to set up the process of merging them together. If we have two groups of points next to each other, we need to find the *inside edges,* or the sides of the shapes that are facing one another. We're also going to find the outside edges, since those will come back into play later, when we come back to ``` leftedge ``` and ``` rightedge ```.
 
@@ -335,7 +335,7 @@ else if (points.length >= 4) {
   let r = points.slice(split + 1, points.length);
   const lefthalf = delaunay(l);
   const righthalf = delaunay(r);
-  
+
   let leftoutside = lefthalf[0];
   let leftinside = lefthalf[1];
   let rightinside = righthalf[0];
@@ -359,21 +359,21 @@ To clarify, we've got the ``` leftedge ``` returned by the triangulation of the 
 
 This while loop will run until both of the edges are oriented properly. It just rewrites the values of ``` leftinside ``` and ``` rightinside ``` by looping around the two shapes formed by the left and right half of the points until eventually it finds the bottom most edges. This is why we need to make sure to return the correct values for ``` leftedge ``` and ``` rightedge ```, otherwise loops like this won't work correctly. This was actually the last step I debugged before I got the program working fully for the first time, I had this loop set up incorrectly, but it would still solve the triangulation with smaller sets of points. The issues didn't present themselves until there were more edges to work with, and more places for something to get oriented wrong and throw off the whole balance.
 
-But now that we've established our lowest point (our lowest common tangent, to use the terminology that Guibas and Stolfi use), it's time to start begin merging the shapes. This step will actually loop over and over until all the connecting edges between the shapes have been drawn, and it can be a little bit hard to visualize what's happening, so I'll explain it briefly here and then dive into each individual sub-step.
+But now that we've established our lowest point (our lowest common tangent, to use the terminology that Guibas and Stolfi use), it's almost time to start begin merging the shapes. This step will actually loop over and over until all the connecting edges between the shapes have been drawn, and it can be a little bit hard to visualize what's happening, so I'll explain it briefly here and then dive into each individual sub-step.
 
-First, we connect the lower common tangents, and set the values of ``` leftedge ``` and ``` rightedge ``` if necessary, since occasionally this first connecting edge (which we'll call ``` base ```) qualifies as being one of those two outer edges. Then, we need to figure out where the next connection will be drawn. We know it will need to have one endpoint that belongs to either the left half or the right half, and since we're trying to draw triangles, it will need to connect to one of the endpoints of ``` base ```. The way Guibas and Stolfi explain how we determine which point from which half of the set we use is by visualizing a circle where ``` base ``` is the diameter. If we were to start making that circle larger while keeping the endpoints of ``` base ``` on its perimeter, the first point we encounter from our set will be one of the points for our new connection, and whichever side of ``` base ``` connects to the opposite half will be the other. They refer to this as the *rising bubble,* and we can see visually how it might look below.
+First, we connect the lower common tangents, and set the values of ``` leftedge ``` and ``` rightedge ``` if necessary, since occasionally this first connecting edge (which we'll call ``` base ```) qualifies as being one of those two outer edges. Then, we need to figure out where the next connection will be drawn. We know it will need to have one endpoint that belongs to either the left half or the right half, and since we're trying to draw triangles, it will need to connect to one of the endpoints of ``` base ```. The way Guibas and Stolfi explain how we determine which point from which half of the set we use is by visualizing a circle where ``` base ``` is the diameter. If we were to start making that circle larger while keeping the endpoints of ``` base ``` on its perimeter, the first point we encounter from our set will be one of the points for our new connection, and whichever side of ``` base ``` connects to the opposite half will be the other. This new edge, that goes from one side of ``` base ``` to a point on the opposite half of the shape then becomes the new ``` base ```. They refer to this as the *rising bubble,* and we can see visually how it might look below.
 
 ![This is the so-called rising bubble](/risingbubble.png)
 
 Then this step is repeated until there are no more points for the bubble to encounter (in other words, once we've reached the top edge). That's all there is to it!
 
-Of course, coding this is a little bit more abstract than just drawing circles, but we will need to think about circles a little bit. One of the side effects of connecting our two halves means that some of the edges we drew in previous steps are not actually valid for the final triangulation. Sometimes the point we wind up finding with our rising bubble has edges attached to it that will need to be deleted. Luckily, Guibas and Stolfi have a clever little test that lets us see if a point will create conflicting edges. It is referred to as the ``` incircle ``` test, and we need to quickly write a function for it.
+Of course, coding this is a little bit more abstract than just drawing circles, but we will need to think about circles a little bit. One of the side effects of connecting our two halves means that some of the edges we drew in previous steps are not actually valid for the final triangulation. Sometimes the point we wind up finding with our rising bubble has edges attached to it that will need to be deleted. Guibas and Stolfi have a test called the ``` incircle ``` test that we will be using as one of the ways to help determine if we will need to delete any edges. Let's quickly write a function for this test.
 
 This function receives a four points, the first three make up a triangle sorted in counter-clockwise order (another spot where making sure our orientation is correct is important!) and the fourth being the point we want to test. If that fourth point is within the circle formed by the first three points, the test will return false. If it returns true, then the fourth point is not within the circle. Mathematically, all this test entails is taking the determinant of the following matrix:
 
 ![the "incircle" test](/incircle.png)
 
-The code for that might look like the following:
+The code I am using for this test looks like this:
 
 ```javascript
 function incircle(a, b, c, d) {
@@ -400,7 +400,72 @@ function incircle(a, b, c, d) {
 }
 ```
 
-Once we've identified that a point has an edge we do not want, we can use ``` destroy() ``` to remove it from our ``` edges ``` array and ensure it does not get drawn.
+This test will be one of the criteria we use to evaluate edges we can connect our ``` base ``` to, and we can use to help determine if any conflicting edges will need to be deleted. If that brief overview wasn't particularly clear, that's okay, we're going to dive in and go step by step now. We need to start by finding ``` base ```.
 
-Now that that very quick overview is done, lets get back into the algorithm itself. We'll being by starting a loop and drawing our ``` base ```:
+```javascript
+let base = rightinside.opposite.connect(leftinside, edges);
+if (leftinside.start == leftoutside.start) {
+  leftoutside = base.opposite;
+}
+if (rightinside.start == rightoutside.start) {
+  rightoutside = base;
+}
+```
 
+Again, we just connect the two lower points that we discovered previously, and then modify our outside edge variables as needed. Note that ``` base ``` always has its ``` start ``` point on the right half of the shape, and its ``` end ``` on the left. Then, the merge loop truly begins. We'll start be checking out the left half of the shape and finding our possible connection there.
+
+```javascript
+while (true) {
+  let lmaybe = base.opposite.onext;
+}
+```
+
+Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside edge of the left side of the shape. Now, just because it is the ``` next ``` edge, does not mean it is actually the edge we want! There might be another point not along the inside edge that we would encounter first with our rising bubble, or depending on how the edges are configured, the ``` next ``` edge from ``` base.opposite ``` (the next edge to share its origin) could be below ``` base ```, in which case it wouldn't work for us. We'll need to test for both of these possibilities. First, we'll come back to that ``` rightof() ``` test, and make sure that ``` lmaybe.end ``` is, in fact, to the right of ``` base ```. If it is, that means ``` lmaybe ``` is above ``` base ```. Second, we'll see if the ``` next ``` edge from ``` lmaybe ``` is within the circle formed by ``` base.end ```, ``` base.start ```, and ``` lmaybe.end ```. If it is within that circle, then it will become our new ``` lmaybe ```, and we need to delete the old ``` lmaybe ``` from the array.
+
+![Here is a picture of how that might look](/lmaybe.png)
+
+```javascript
+while (rightof(lmaybe.end, base)
+  && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
+  lmaybe.destroy(edges);
+  lmaybe = lmaybe.onext;
+}
+```
+
+Now we can repeat those steps on the right side. We're doing exactly the same things, we simply have to use different navigation references.
+
+```javascript
+let rmaybe = base.oprev
+while(rightof(rmaybe.end, base)
+  && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
+  rmabye.destroy(edges);
+  rmaybe = rmaybe.onext;
+}
+```
+
+This is actually where we'll want to build ourselves an escape from the merge loop, since we can very easily wind up with two invalid edges for ``` lmaybe ``` and ``` rmaybe ```, in which case our merge is done.
+
+```javascript
+if (!rightof(lmaybe.end, base) && !rightof(rmaybe.end, base)) {
+  break;
+}
+```
+
+But of course, one or even both of our two possible edges might be valid possibilities. If they're both valid, how will we choose? Well in theory, we want to pick the edge that the rising bubble would encounter first. We can do this by using ``` incircle() ``` again; if the circle formed by (for example) ``` lmaybe ``` and ``` base ``` contains ``` rmaybe ```, then ``` rmaybe ``` would be the first edge encountered. In that case, we'd connect ``` rmaybe ``` to ``` base ```, and then have the resulting edge be the new ``` base ```.
+
+```javascript
+if (rightof(lmaybe.end, base)) {
+  if (rightof(rmaybe.end, base)
+    && incircle(lmaybe.end, base.end, base.start, rmaybe.end)) {
+    base = rmaybe.connect(base.opposite, edges);
+  } else {
+    base = base.opposite.connect(lmaybe.opposite, edges);
+  }
+} else {
+  base = rmaybe.connect(base.opposite, edges);
+}
+```
+
+To quickly go over that again, if the left possibility is valid, then check if the right possibility is also valid. If so, then test if the right possibility is within the circle formed by the left possibility and ``` base ```. If it does, then connect ``` base ``` to ``` rmaybe ```. If both possibilities are valid, but the right one does not fall inside the circle, then we can connect ``` lmaybe ``` to ``` base ```. If the left possibility wasn't valid to begin with, then the right possibility must have been (otherwise we would have exited the loop already), so we can go with that.
+
+Then all we have to do is close the loop, set ``` leftedge ``` to ``` leftoutside ``` and ``` rightedge ``` to ```rightoutside ```, and return those values! That's all there is to it. There's a fair amount going on, and it can be hard to keep track of which edge is facing what way, but the actual resulting code isn't that long or complicated. Once the data structure is set up properly, it all comes together in a pretty nicely.
