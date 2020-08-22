@@ -1,8 +1,15 @@
 ## The Algorithm
 
-What follows is a brief explanation of the algorithm as far as I understand it. The paper itself offers extensive proofs and much more detailed explanations, so if you're curious I strongly recommend reading it. Unfortunately, my institutional knowledge of math of any kind, let alone computational geometry, ends with whatever basic calculus I learned in my senior year of high school, so a fair amount of what's going on in the proofs goes over my head. That being said, I think I was able to understand how it works even if I don't fully grasp the why.
+What follows is a brief explanation of the algorithm as far as I understand it. The paper itself offers extensive proofs and much more detailed explanations, so if you're curious I strongly recommend reading it. Unfortunately, my institutional knowledge of math of any kind, let alone computational geometry, ends with whatever basic calculus I learned by the end of high school, so a fair amount of what's going on in the proofs goes over my head. That being said, I think I was able to understand how it works even if I don't fully grasp the why.
 
-The code itself also contains relatively extensive comments, more for my own reference than anyone else's. I know I'll come back to this in a few months having forgotten everything I learned, so I tried to make retracing my steps as straightforward as possible.
+The code itself also contains relatively extensive comments, more for my own reference than anyone else's. I know I'll come back to this in a few months having forgotten everything I learned, so I tried to make retracing my steps as straightforward as possible. This explanation here is relatively long and is broken up into a few sections.
+
+* [i. The Quad-Edge Data Structure](#i-the-quad-edge-data-structure)
+* [ii. Navigating Via Edges](#ii-navigating-via-edges)
+* [iii. Defining an Edge](#iii-defining-an-edge)
+* [iv. The Divide-and-Conquer Algorithm](#iv-the-divide-and-conquer-algorithm)
+
+The first section is a look at the data structure we'll be using in the algorithm and how it is explained in the Guibas and Stolfi paper. Tje second section examines the relationships between edges within the quad-edge structure. The third section focuses on actually coding that data structure, and the fourth section goes step-by-step through the algorithm and breaks down how I pieced the code together.
 
 ### i. The Quad-Edge Data Structure
 
@@ -256,7 +263,7 @@ As you can probably tell, it functions quite similarly to connect, making use of
 
 Now that we have these methods established, we can start putting everything together. It's time to move on to the algorithm itself!
 
-### iii. The Divide-and-Conquer Algorithm
+### iv. The Divide-and-Conquer Algorithm
 
 The algorithm itself is called using the function ``` delaunay() ```, which accepts an array of points. It is imporant to note that these points should be sorted by x-value in ascending order! I use a quicksort to do this after generating an array of random points, but you can set up your set of points however works best for you. This function will also ultimately return the left-most and right-most edges of the convex hull formed by the set of points.
 
@@ -468,4 +475,4 @@ if (rightof(lmaybe.end, base)) {
 
 To quickly go over that again, if the left possibility is valid, then check if the right possibility is also valid. If so, then test if the right possibility is within the circle formed by the left possibility and ``` base ```. If it does, then connect ``` base ``` to ``` rmaybe ```. If both possibilities are valid, but the right one does not fall inside the circle, then we can connect ``` lmaybe ``` to ``` base ```. If the left possibility wasn't valid to begin with, then the right possibility must have been (otherwise we would have exited the loop already), so we can go with that.
 
-Then all we have to do is close the loop, set ``` leftedge ``` to ``` leftoutside ``` and ``` rightedge ``` to ```rightoutside ```, and return those values! That's all there is to it. There's a fair amount going on, and it can be hard to keep track of which edge is facing what way, but the actual resulting code isn't that long or complicated. Once the data structure is set up properly, it all comes together in a pretty nicely.
+Then all we have to do is close the loop, set ``` leftedge ``` to ``` leftoutside ``` and ``` rightedge ``` to ```rightoutside ```, and return those values! That's all there is to it. There's a fair amount going on, and it can be hard to keep track of which edge is facing what way, but the actual resulting code isn't that long or complicated. Once the data structure is set up properly, it all comes together in a pretty nicely. The paper does also propose an incremental algorithm, but I haven't yet tried to get that working. I will update this page if I decide to take that on.
