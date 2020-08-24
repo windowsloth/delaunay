@@ -1,5 +1,7 @@
 # delaunay
 
+[Click here for a very simple interactive demo](/index.html);
+
 ## Overview
 
 This is me trying my hand at implimenting a divide-and-conquer algorithm for creating Delaunay triangulations from a set of points. The algorithm in question is the one described in Guibas and Stolfi's 1985 paper *PRIMITIVES FOR THE MANIPULATION OF GENERAL SUBDIVISIONS AND THE COMPUTATION OF VORONOI DIAGRAMS.* It works quite well: with an entirely new set of points being generated every frame, I was able to still get 60fps until I increased the number of points to 200, where things start to slow down (However, with 500 points I was getting around 30fps).
