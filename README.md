@@ -1,6 +1,6 @@
 # delaunay
 
-[Click here for a very simple interactive demo](/index.html);
+[Click here for a very simple interactive demo](https://windowsloth.github.io/delaunay)
 
 ## Overview
 
