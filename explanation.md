@@ -370,7 +370,7 @@ But now that we've established our lowest point (our lowest common tangent, to u
 
 First, we connect the lower common tangents, and set the values of ``` leftedge ``` and ``` rightedge ``` if necessary, since occasionally this first connecting edge (which we'll call ``` base ```) qualifies as being one of those two outer edges. Then, we need to figure out where the next connection will be drawn. We know it will need to have one endpoint that belongs to either the left half or the right half, and since we're trying to draw triangles, it will need to connect to one of the endpoints of ``` base ```. The way Guibas and Stolfi explain how we determine which point from which half of the set we use is by visualizing a circle where ``` base ``` is the diameter. If we were to start making that circle larger while keeping the endpoints of ``` base ``` on its perimeter, the first point we encounter from our set will be one of the points for our new connection, and whichever side of ``` base ``` connects to the opposite half will be the other. This new edge, that goes from one side of ``` base ``` to a point on the opposite half of the shape then becomes the new ``` base ```. They refer to this as the *rising bubble,* and we can see visually how it might look below.
 
-![This is the so-called rising bubble](../media/risingbubble.png)
+![This is the so-called rising bubble](../media/risingbubble.gif)
 
 Then this step is repeated until there are no more points for the bubble to encounter (in other words, once we've reached the top edge). That's all there is to it!
 
