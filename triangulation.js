@@ -18,64 +18,53 @@ function delaunay(points) {
 // The function receives a set of points (sorted by x value in ascending order)
 // and returns two edges: the left-most and right-most edge of the convex hull
 // formed by the set of points.
-  const n = [];
-  for (p of points) {
-     n.splice(n.length, 0, p);
-  }
   let leftedge;
   let rightedge;
 
-  if (n.length == 2) {
+  if (points.length == 2) {
 //  LET THE TWO POINTS BE TWO SITES, IN SORTED ORDER. CREATE AN EDGE, a, FROM
 //  THE FIRST POINT TO THE SECOND.
     const a = new MakeEdge();
-    a.setup(n[0], n[1]);
-    edges.S.splice(edges.S.length, 0, a);
+    a.setup(points[0], points[1], edges);
     leftedge = a;
     rightedge = a.opposite;
-  } else if (n.length == 3) {
+  } else if (points.length == 3) {
 //  LET THE THREE POINTS BE THREE SITES, IN SORTED ORDER.
 //  CREATE EDGE a CONNECTING POINT 0 TO POINT 1, AND EDGE b CONNECTING POINT 1
  // TO POINT 2.
     const a = new MakeEdge();
     const b = new MakeEdge();
-    a.setup(n[0], n[1]);
-    b.setup(n[1], n[2]);
+    a.setup(points[0], points[1], edges);
+    b.setup(points[1], points[2], edges);
     a.opposite.cleave(b);
-    edges.S.splice(edges.S.length, 0, a);
-    edges.S.splice(edges.S.length, 0, b);
 //  THEN CLOSE THE TRIANGLE.
-    const c = edges.connect(b, a);
+    const c = b.connect(a, edges);
 //  The following if statements ensure that the triangle's points are sorted in
 //  counter-clockwise order, which is important for orienting the edges, and to
 //  make sure that the incircle() test will work properly.
-    if (ccw(n[0], n[1], n[2])) {
-      leftedge = a;
-      rightedge = b.opposite;
-    } else if (ccw(n[0], n[2], n[1])) {
+    if (rightof(points[2], a)) {
       leftedge = c.opposite;
       rightedge = c;
     } else {
-//    THE THREE POINTS ARE COLINEAR.
       leftedge = a;
       rightedge = b.opposite;
     }
-  } else if (n.length >= 4) {
+  } else if (points.length >= 4) {
 //  LET l AND r BE THE LEFT AND RIGHT HALVES OF THE SET OF POINTS.
     const split = Math.floor(points.length / 2);
-    let l = points.splice(0, split);
-    let r = points;
+    let l = points.slice(0, split);
+    let r = points.slice(split, points.length);
 //  We'll recursively run this function again on each half, continuing to divide
 //  until we're working with just sets of 2 or 3 points, and then we'll put each
 //  of those sets together into bigger and bigger polygons until we've just got
 //  one big, juicy polygon, which is the delaunay triangulation of our starting
 //  set of points.
-    leftedge = delaunay(l);
-    rightedge = delaunay(r);
-    let leftoutside = leftedge[0];
-    let leftinside = leftedge[1];
-    let rightinside = rightedge[0];
-    let rightoutside = rightedge[1];
+    const lefthalf = delaunay(l);
+    const righthalf = delaunay(r);
+    let leftoutside = lefthalf[0];
+    let leftinside = lefthalf[1];
+    let rightinside = righthalf[0];
+    let rightoutside = righthalf[1];
 //  COMPUTE THE LOWER COMMON TANGENT OF l AND r.
 //
 //  Eseentially, just make sure that the right edge of the left half
@@ -98,7 +87,7 @@ function delaunay(points) {
 //  just drew, can be considered the new leftoutside or rightoutside edge of the
 //  larger hull that we're in the process of creating by combining l and r (the
 //  left and right halves of the set of points).
-    let base = edges.connect(rightinside.opposite, leftinside);
+    let base = rightinside.opposite.connect(leftinside, edges);
     if (leftinside.start == leftoutside.start) {
       leftoutside = base.opposite;
     }
@@ -122,10 +111,10 @@ function delaunay(points) {
 //    edge becomes lmaybe and we run the test again until either the circle is
 //    free of points, or we run out of edges in l that are above edge base.
       let lmaybe = base.opposite.onext;
-      while(valid(lmaybe, base)
+      while(rightof(lmaybe.end, base)
         && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
         let temp = lmaybe.onext;
-        edges.destroy(lmaybe);
+        lmaybe.destroy(edges);
         lmaybe = temp;
       }
 //    SYMMETRICALLY, LOCATE THE FIRST r POINT TO BE HIT, AND DELETE r EDGES
@@ -134,10 +123,10 @@ function delaunay(points) {
 //    with our circle, we're checking the previous edge. Again, it's the same
 //    steps that we did for lmaybe, we just need to mirror them for rmaybe.
       let rmaybe = base.oprev;
-      while(valid(rmaybe, base)
+      while(rightof(rmaybe.end, base)
         && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
-        let temp = rmaybe.oprev;
-        edges.destroy(rmaybe);
+        let temp = rmaybe.oprev
+        rmaybe.destroy(edges);
         rmaybe = temp;
       }
 //    IF BOTH lmaybe AND rmaybe ARE INVALID, THEN base IS THE UPPER COMMON
@@ -157,15 +146,15 @@ function delaunay(points) {
 //    Sometimes, both lmaybe and rmaybe will be valid, and in that case, we
 //    see which one is closer to base by seeing if rmaybe is within the circle
 //    that passes through lmaybe.end, lmaybe.start, and rmaybe.start.
-      if (valid(lmaybe, base)) {
-        if (valid(rmaybe, base)
-        && incircle(lmaybe.end, lmaybe.start, rmaybe.start, rmaybe.end)) {
-          base = edges.connect(rmaybe, base.opposite);
+      if (rightof(lmaybe.end, base)) {
+        if (rightof(rmaybe.end, base)
+          && incircle(lmaybe.end, lmaybe.start, rmaybe.start, rmaybe.end)) {
+          base = rmaybe.connect(base.opposite, edges);
         } else {
-          base = edges.connect(base.opposite, lmaybe.opposite);
+          base = base.opposite.connect(lmaybe.opposite, edges);
         }
       } else {
-        base = edges.connect(rmaybe, base.opposite);
+        base = rmaybe.connect(base.opposite, edges);
       }
 //    Now all that's left is to return what the left and right-most edges of the
 //    resulting polygon are.
@@ -248,11 +237,7 @@ function incircle(a, b, c, d) {
 // that version of the test, and used this one that I was able to quickly get
 // more reliable results from.
 function valid(a, b) {
-  let result = false;
-  if (rightof(a.end, b)) {
-    result = true;
-  }
-  return result;
+  return rightof(a.end, b);
 }
 // Added for debugging purposes, this visualizes the circumcircle of 3 points.
 function circcirc(a, b, c) {
