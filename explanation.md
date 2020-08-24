@@ -46,11 +46,11 @@ Guibas and Stolfi introduce another way of looking at our edge via this analogy,
 Returning to the idea of faces, our edge does have a face on either side of it. As we went through, it might be only one face on both sides, but there is a face we can reference regardless. Now, we're currently drawing a diagram by drawing lines that represent connections between points. But we could instead draw the *dual* of this diagram by drawing lines that represent the connections between faces.
 This is where that idea of a loop comes in. Since our edge has only one face on either side, the dual of our edge can be represented as another looped edge.
 
-![This idea gets a little bit abstract, but maybe this picture helps](../erot.png)
+![This idea gets a little bit abstract, but maybe this picture helps](../media/erot.png)
 
 Since this dual edge connects the faces on either side of ``` e ```, we can think of it as being a 90 degree, counter-clockwise rotation around ``` e ``` to go from the face on the right to the one on the left (Note that by default, we will be going in a counter-clockwise direction when thinking about these edges). Guibas and Stolfi refer to this dual as ``` e.Rot ```. If we take ``` e.Rot ``` and go anther 90 degrees, we wind up with ``` e.Sym ```. We can rotate again, and now we're going from the left face to the right face. We can call this ``` e.Rot-1 ``` (I used ``` invrot ``` for "inverse rot"). Finally one more rotation brings us right back to ``` e ```.
 
-![Here we have our e and e.Sym, along with e.Rot and the inverse of e.Rot](../invrot.png)
+![Here we have our e and e.Sym, along with e.Rot and the inverse of e.Rot](../media/invrot.png)
 
 These 4 edges/concepts that make up ``` e ``` are what make up the quad part of the quad edge structure.
 
@@ -58,19 +58,19 @@ These 4 edges/concepts that make up ``` e ``` are what make up the quad part of 
 
 Now it's time to start think about the way our edge could be related to any other edges that might be part of the diagram. Well, to get to another edge we need a reference point to travel around. One reference point we could use is the start (or *origin*) point of edge ``` e ```, or ``` e.Org ```. If we travel counter-clockwise around ``` e.Org ```, we can refer to the next edge we encounter that shares that origin as ``` e.Onext ```. Alternatively we could travel counter clockwise around the face on the left-hand side of ``` e ```. This would take us to ``` e.Lnext ```.
 
-![The next edge as we rotate counter clockwise around the origin of e is called Onext. Going counter-clockwise around the left face gives us Lnext](../onextlnext.png)
+![The next edge as we rotate counter clockwise around the origin of e is called Onext. Going counter-clockwise around the left face gives us Lnext](../media/onextlnext.png)
 
 However, we can still take these little walks around the origin or around the left face with our lone edge, it's just that if ``` e ``` has no connections, ``` e.Onext == e ``` and ``` e.Lnext == e.Sym ```. Notice how we can re-orient ourselves using these navigation keywords, instead of just reversing our orientation! The fact that context affects the results we get in this way will be extremely important as we continue.
 
-![If we travel in circles around the same edge, we can encounter it in different orientations](../lonenext.png)
+![If we travel in circles around the same edge, we can encounter it in different orientations](../media/lonenext.png)
 
 We could also travel in the other direction, though! What if we don't want the next edge around the origin, and instead we go clockwise to find the previous edge? Well, that would be represented by ``` e.Oprev ```. We also have ``` e.Lprev ``` by going clockwise around the left face. We can also get ``` e.Dnext ``` and ```e.DPrev ``` or even ``` e.Rprev ``` and ``` e.Rnext ``` by circling the end point (or *destination*; ``` e.Dest ```) or the right face, respectively.
 
-![These things go both ways. As above, so below.](../oprevlprev.png)
+![These things go both ways. As above, so below.](../media/oprevlprev.png)
 
 If ``` e ``` is part of a diagram with other edges, we can start to define its relationship to said other edges using only a few pieces of information: our *origin*, the *dual*, and the *next* edge. With just those three things, we can determine where all those other navigation keywords will lead us. For this to work, *next* refers to ``` e.Onext ```. Let's start by trying to figure out what ``` e.Oprev ``` would be. We want to go counter clockwise around our origin, but we could also re-orient ourselves a few times and think about our edge a from a few different angles. Remember, ``` e.Rot ``` is an edge too, so it also has a *dual*, and it also has a *next* edge, which also a *dual*, and so on. In fact, if we look at ``` e.Rot.Onext.Rot ```, we can see that it gives us ``` e.Oprev ```. It's also worth noting that for a lone edge, ``` e.Oprev == e == e.Onext ```.
 
-![See how we can use Rot and Next to get from one edge to another?](../navigating.png)
+![See how we can use Rot and Next to get from one edge to another?](../media/navigation.png)
 
 Rather than breaking each different navigation keyword down, here is how all the ones we will be using simplify down. See if you can visualize of how each of them works based one what we've discussed so far.
 
@@ -370,7 +370,7 @@ But now that we've established our lowest point (our lowest common tangent, to u
 
 First, we connect the lower common tangents, and set the values of ``` leftedge ``` and ``` rightedge ``` if necessary, since occasionally this first connecting edge (which we'll call ``` base ```) qualifies as being one of those two outer edges. Then, we need to figure out where the next connection will be drawn. We know it will need to have one endpoint that belongs to either the left half or the right half, and since we're trying to draw triangles, it will need to connect to one of the endpoints of ``` base ```. The way Guibas and Stolfi explain how we determine which point from which half of the set we use is by visualizing a circle where ``` base ``` is the diameter. If we were to start making that circle larger while keeping the endpoints of ``` base ``` on its perimeter, the first point we encounter from our set will be one of the points for our new connection, and whichever side of ``` base ``` connects to the opposite half will be the other. This new edge, that goes from one side of ``` base ``` to a point on the opposite half of the shape then becomes the new ``` base ```. They refer to this as the *rising bubble,* and we can see visually how it might look below.
 
-![This is the so-called rising bubble](/risingbubble.png)
+![This is the so-called rising bubble](../media/risingbubble.png)
 
 Then this step is repeated until there are no more points for the bubble to encounter (in other words, once we've reached the top edge). That's all there is to it!
 
@@ -378,7 +378,7 @@ Of course, coding this is a little bit more abstract than just drawing circles, 
 
 This function receives a four points, the first three make up a triangle sorted in counter-clockwise order (another spot where making sure our orientation is correct is important!) and the fourth being the point we want to test. If that fourth point is within the circle formed by the first three points, the test will return false. If it returns true, then the fourth point is not within the circle. Mathematically, all this test entails is taking the determinant of the following matrix:
 
-![the "incircle" test](/incircle.png)
+![the "incircle" test](../media/incircle.png)
 
 The code I am using for this test looks like this:
 
