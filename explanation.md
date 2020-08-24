@@ -443,8 +443,9 @@ Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside 
 ```javascript
 while (rightof(lmaybe.end, base)
   && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
+  let temp = lmaybe.onext;
   lmaybe.destroy(edges);
-  lmaybe = lmaybe.onext;
+  lmaybe = temp;
 }
 ```
 
@@ -454,8 +455,9 @@ Now we can repeat those steps on the right side. We're doing exactly the same th
 let rmaybe = base.oprev
 while(rightof(rmaybe.end, base)
   && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
+  let temp = rmaybe.oprev;
   rmabye.destroy(edges);
-  rmaybe = rmaybe.onext;
+  rmaybe = temp;
 }
 ```
 
