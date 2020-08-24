@@ -96,7 +96,7 @@ Now that we've taken a quick look at the fact that we can do a fair amount with 
 
 >The ``` Next ``` field of ``` e[r] ``` contains a reference to the edge ``` e.Rot[r].Onext ```.  (Guibas & Stolfi, 1985)
 
->The first operator is denoted by ``` e&larr;MakeEdge[] ```. It takes no parameters, and returns an edge ``` e ``` of a newly created data structure representing a subdivision of the sphere. (Guibas & Stolfi, 1985)
+>The first operator is denoted by ``` e <-- MakeEdge[] ```. It takes no parameters, and returns an edge ``` e ``` of a newly created data structure representing a subdivision of the sphere. (Guibas & Stolfi, 1985)
 
 The edges of our triangulation will exist as instances of the ``` MakeEdge ``` class. Here, I'll briefly go over this class and the methods we'll be using before finally diving into the actual algorithm. The constructor for ``` MakeEdge ``` looks like this:
 
