@@ -388,7 +388,6 @@ This function receives a four points, the first three make up a triangle sorted 
 = | x2 - x4, y2 - y4, ((x2 - x4)^2) + ((y2 - y4)^2) |
   | x3 - x4, y3 - y4, ((x3 - x4)^2) + ((y3 - y4)^2) |
 ```
-![the "incircle" test](../media/incircle.png)
 
 The code I am using for this test looks like this:
 
@@ -437,7 +436,7 @@ while (true) {
 }
 ```
 
-Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside edge of the left side of the shape. Now, just because it is the ``` next ``` edge, does not mean it is actually the edge we want! There might be another point not along the inside edge that we would encounter first with our rising bubble, or depending on how the edges are configured, the ``` next ``` edge from ``` base.opposite ``` (the next edge to share its origin) could be below ``` base ```, in which case it wouldn't work for us. We'll need to test for both of these possibilities. First, we'll come back to that ``` rightof() ``` test, and make sure that ``` lmaybe.end ``` is, in fact, to the right of ``` base ```. If it is, that means ``` lmaybe ``` is above ``` base ```. Second, we'll see if the ``` next ``` edge from ``` lmaybe ``` is within the circle formed by ``` base.end ```, ``` base.start ```, and ``` lmaybe.end ```. If it is within that circle, then it will become our new ``` lmaybe ```, and we need to delete the old ``` lmaybe ``` from the array.
+Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside edge of the left side of the shape. Now, just because it is the ``` next ``` edge, does not mean it is actually the edge we want! There might be another point not along the inside edge that we would encounter first with our rising bubble, or depending on how the edges are configured, the ``` next ``` edge from ``` base.opposite ``` (the next edge to share its origin) could be below ``` base ```, in which case it wouldn't work for us. We'll need to test for both of these possibilities. First, we'll come back to that ``` rightof() ``` test, and make sure that ``` lmaybe.end ``` is, in fact, to the right of ``` base ```. If it is, that means ``` lmaybe ``` is above ``` base ```. Second, we'll see if the ``` next ``` edge from ``` lmaybe ``` is within the circle formed by ``` base.end ```, ``` base.start ```, and ``` lmaybe.end ```. If it is within that circle, then it will become our new ``` lmaybe ```, and we need to delete the old ``` lmaybe ``` from the array. The image below illustrates an instance where ``` lmaybe ``` is valid, but will be removed and replaced with ``` lmaybe.onext ```.
 
 ![Here is a picture of how that might look](../media/lmaybe.png)
 
