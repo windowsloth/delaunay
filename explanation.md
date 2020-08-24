@@ -429,7 +429,7 @@ while (true) {
 
 Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside edge of the left side of the shape. Now, just because it is the ``` next ``` edge, does not mean it is actually the edge we want! There might be another point not along the inside edge that we would encounter first with our rising bubble, or depending on how the edges are configured, the ``` next ``` edge from ``` base.opposite ``` (the next edge to share its origin) could be below ``` base ```, in which case it wouldn't work for us. We'll need to test for both of these possibilities. First, we'll come back to that ``` rightof() ``` test, and make sure that ``` lmaybe.end ``` is, in fact, to the right of ``` base ```. If it is, that means ``` lmaybe ``` is above ``` base ```. Second, we'll see if the ``` next ``` edge from ``` lmaybe ``` is within the circle formed by ``` base.end ```, ``` base.start ```, and ``` lmaybe.end ```. If it is within that circle, then it will become our new ``` lmaybe ```, and we need to delete the old ``` lmaybe ``` from the array.
 
-![Here is a picture of how that might look](/lmaybe.png)
+![Here is a picture of how that might look](../media/lmaybe.png)
 
 ```javascript
 while (rightof(lmaybe.end, base)
