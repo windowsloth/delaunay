@@ -13,46 +13,6 @@
 // for differences in the naming of variables and functions.
 // These comments will be written in ALL CAPS for clarity.
 
-class Edges {
-  constructor() {
-//  Create an arra to store all of the edges we create.
-//  Edges are added manually at the time of writing, but this may be changed so
-//  that it occurs as part of the setup() method in MakeEdge.
-    this.S = [];
-  }
-
-  connect(a, b) {
-    const e = new MakeEdge();
-    e.setup(a.SYM().DATA, b.DATA);
-    e.cleave(a.LNEXT());
-    e.SYM().cleave(b);
-    this.S.splice(this.S.length, 0, e);
-    return e;
-  }
-
-  destroy(e) {
-    e.cleave(e.OPREV());
-    e.SYM().cleave(e.SYM().OPREV());
-//  Rather than simply disconnecting the edge from its former neighbors, we also
-//  must remove it from our array since it is no longer needed.
-    if (this.S.indexOf(e) == -1) {
-      this.S.splice(this.S.indexOf(e.SYM()), 1);
-    } else {
-      this.S.splice(this.S.indexOf(e), 1);
-    }
-  }
-
-  show() {
-//  A p5.js function that shows all of the edges. May be removed since it can be
-//  done just easily in a p5.js sketch outside of this class.
-    for (let edge of this.S) {
-      strokeWeight(1);
-      stroke(255);
-      line(edge.DATA[0],edge.DATA[1],edge.SYM().DATA[0],edge.SYM().DATA[1]);
-    }
-  }
-}
-
 class MakeEdge {
   constructor() {
 //  "Each part e [r] of an edge record contains two fields, DATA and NEXT.
@@ -90,7 +50,7 @@ class MakeEdge {
     this.r = [this, null, null, null];
   }
 
-  setup(start, end) {
+  setup(start, end, arr) {
 //  This method receives a start point and end point, and uses those to set up
 //  the basic relationships this edge it will have to itself and its dual if it
 //  is a lone edge.
@@ -122,72 +82,44 @@ class MakeEdge {
     rot.r[3] = this;
     rotsym.r[1] = this;
     rotsym.r[3] = sym;
+    arr.push(this);
   }
 // The following methods are all used to determine the various relationships
 // that our edge has with itself/other edges. The methods themselves use names
 // based upon the naming conventions used in the paper, but in order to increase
 // legibility there are some getter functions that use different, hopefully more
 // intuitive names.
-  ROT(n) {
-    return this.r[(n + 1) % 4];
-  }
-  ROT() {
-    return this.r[1];
-  }
-  SYM(n) {
-    return this.r[(n + 2) % 4];
-  }
-  SYM() {
-    return this.r[2];
-  }
-  INVROT(n) {
-    return this.r[(n + 3) % 4];
-  }
-  INVROT() {
-    return this.r[3];
-  }
-  ONEXT(n) {
-    return this.r[n].NEXT;
-  }
-  ONEXT() {
-    return this.NEXT;
-  }
-  OPREV(n) {
-    return this.r[(n + 1) % 4].NEXT.ROT();
-  }
-  OPREV() {
-    return this.ROT().NEXT.ROT();
-  }
-  LNEXT() {
-    return this.INVROT().ONEXT().ROT();
-  }
-  RPREV() {
-    return this.SYM().ONEXT();
-  }
+//
 // These getter methods are what will be used in the actual algorithm itself.
 // The only major changes are that I am using start and end rather than org and
 // dest, just because they're not that much longer as far as variable names go,
 // but it's much more obvious what they mean.
+  get rot() {
+    return this.r[1];
+  }
+  get opposite() {
+    return this.r[2];
+  }
+  get invrot() {
+    return this.r[3];
+  }
   get start() {
     return this.DATA;
   }
   get end() {
-    return this.SYM().DATA;
-  }
-  get opposite() {
-    return this.SYM();
+    return this.opposite.DATA;
   }
   get lnext() {
-    return this.LNEXT();
+   return this.invrot.onext.rot;
   }
   get oprev() {
-    return this.OPREV();
+    return this.rot.NEXT.rot;
   }
   get onext() {
-    return this.ONEXT();
+    return this.NEXT;
   }
   get rprev() {
-    return this.RPREV();
+    return this.opposite.onext;
   }
 
   cleave(e) {
@@ -207,14 +139,34 @@ class MakeEdge {
 //  other, swapping each other's NEXT values. This either makes them next to
 //  one another around the same origin, or it splits them up so they are no
 //  longer next to one another.
-    const newONEXT = e.ONEXT();
-    const currONEXT = this.ONEXT();
+    const newONEXT = e.onext;
+    const currONEXT = this.onext;
     this.NEXT = newONEXT;
     e.NEXT = currONEXT;
 
-    const alphaONEXT = e.ONEXT().ROT().ONEXT();
-    const betaONEXT = this.ONEXT().ROT().ONEXT();
-    this.ONEXT().ROT().NEXT = alphaONEXT;
-    e.ONEXT().ROT().NEXT = betaONEXT;
+    const alphaONEXT = e.onext.rot.onext;
+    const betaONEXT = this.onext.rot.onext;
+    this.onext.rot.NEXT = alphaONEXT;
+    e.onext.rot.NEXT = betaONEXT;
+  }
+  
+  connect(a, arr) {
+    const e = new MakeEdge();
+    e.setup(this.end, a.start, arr);
+    e.cleave(this.lnext);
+    e.opposite.cleave(a);
+    return e;
+  }
+
+  destroy(arr) {
+    this.cleave(this.oprev);
+    this.opposite.cleave(this.opposite.oprev);
+//  Rather than simply disconnecting the edge from its former neighbors, we also
+//  must remove it from our array since it is no longer needed.
+    if (arr.indexOf(this) == -1) {
+      arr.splice(arr.indexOf(this.opposite), 1);
+    } else {
+      arr.splice(arr.indexOf(this), 1);
+    }
   }
 }

@@ -66,7 +66,7 @@ However, we can still take these little walks around the origin or around the le
 
 We could also travel in the other direction, though! What if we don't want the next edge around the origin, and instead we go clockwise to find the previous edge? Well, that would be represented by ``` e.Oprev ```. We also have ``` e.Lprev ``` by going clockwise around the left face. We can also get ``` e.Dnext ``` and ```e.DPrev ``` or even ``` e.Rprev ``` and ``` e.Rnext ``` by circling the end point (or *destination*; ``` e.Dest ```) or the right face, respectively.
 
-![These things go both ways. As above, so below.](../media/oprevrprev.png)
+![These things go both ways. As above, so below.](../media/oprevlprev.png)
 
 If ``` e ``` is part of a diagram with other edges, we can start to define its relationship to said other edges using only a few pieces of information: our *origin*, the *dual*, and the *next* edge. With just those three things, we can determine where all those other navigation keywords will lead us. For this to work, *next* refers to ``` e.Onext ```. Let's start by trying to figure out what ``` e.Oprev ``` would be. We want to go counter clockwise around our origin, but we could also re-orient ourselves a few times and think about our edge a from a few different angles. Remember, ``` e.Rot ``` is an edge too, so it also has a *dual*, and it also has a *next* edge, which also a *dual*, and so on. In fact, if we look at ``` e.Rot.Onext.Rot ```, we can see that it gives us ``` e.Oprev ```. It's also worth noting that for a lone edge, ``` e.Oprev == e == e.Onext ```.
 
@@ -429,7 +429,7 @@ while (true) {
 
 Picking the ``` onext ``` edge from ``` base ``` gives us an edge on the inside edge of the left side of the shape. Now, just because it is the ``` next ``` edge, does not mean it is actually the edge we want! There might be another point not along the inside edge that we would encounter first with our rising bubble, or depending on how the edges are configured, the ``` next ``` edge from ``` base.opposite ``` (the next edge to share its origin) could be below ``` base ```, in which case it wouldn't work for us. We'll need to test for both of these possibilities. First, we'll come back to that ``` rightof() ``` test, and make sure that ``` lmaybe.end ``` is, in fact, to the right of ``` base ```. If it is, that means ``` lmaybe ``` is above ``` base ```. Second, we'll see if the ``` next ``` edge from ``` lmaybe ``` is within the circle formed by ``` base.end ```, ``` base.start ```, and ``` lmaybe.end ```. If it is within that circle, then it will become our new ``` lmaybe ```, and we need to delete the old ``` lmaybe ``` from the array.
 
-![Here is a picture of how that might look](../media/lmaybe.png)
+![Here is a picture of how that might look](/lmaybe.png)
 
 ```javascript
 while (rightof(lmaybe.end, base)

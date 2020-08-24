@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<title>
+  DELAUNAY TRIANGULATION
+</title>
+<head>
+  <meta charset = "utf-8">
+  <script src = "p5.min.js"></script>
+  <script src = "edges.js"></script>
+  <script src = "triangulation.js"></script>
+  <script>
+    let edges = [];
+    let complexity = 13;
+    let set = [];
+    let seed;
+    let slider;
+
+    function setup() {
+      //noLoop();
+      createCanvas(600, 600);
+      rectMode(CORNERS);
+      seed = floor(random(4096));
+      slider = createSlider(2, 666);
+      slider.position(225, 575);
+      slider.style("width", "200px");
+      slider.value(complexity);
+    }
+
+    function draw() {
+      clear();
+      complexity = slider.value();
+      randomSeed(seed);
+      noStroke();
+      interface();
+      setpoints();
+      for (let edge of edges) {
+        strokeWeight(1);
+        stroke(255);
+        line(edge.start[0], edge.start[1], edge.end[0], edge.end[1]);
+      }
+    }
+
+    function interface() {
+      fill(0);
+      textAlign(CENTER, CENTER);
+      textStyle(BOLD);
+      textSize(18);
+      text("DIVIDE-AND-CONQUER DELAUNAY TRIANGULATION", 300, 25);
+      textStyle(NORMAL);
+      textSize(12);
+      text("Number of points:", 125, 578);
+      text(complexity, 200, 578);
+      strokeWeight(2);
+      stroke(0);
+      fill(0);
+      rect(50, 50, 550, 550);
+      reroll = createButton("Randomize");
+      reroll.position(450, 575);
+      reroll.mousePressed(randomizepoints);
+    }
+
+    function setpoints() {
+      set = [];
+      edges = [];
+      for (let i = 0; i < complexity; i ++) {
+        const x = random(55, width - 55);
+        const y = random(55, height - 55);
+        set[i] = [x, y];
+        noStroke();
+        fill(255);
+        circle(x, y, 5);
+      }
+      quicksort(set, 0, complexity - 1, true);
+      delaunay(set);
+      redraw();
+    }
+
+    function randomizepoints() {
+      seed = floor(random(4096));
+      redraw();
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
