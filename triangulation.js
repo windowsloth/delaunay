@@ -134,7 +134,7 @@ function delaunay(points) {
 //
 //    If we run out of edges on both sides that are above the base, then we must
 //    be dealing with the top-most edge, and we can break out of our loop.
-      if (!valid(lmaybe, base) && !valid(rmaybe, base)) {
+      if (!rightof(lmaybe.end, base) && !rightof(rmaybe.end, base)) {
         break;
       }
 //    THE NEXT CROSS EDGE IS TO BE CONNECTED TO EITHER lmaybe.end OR rmaybe.end.
