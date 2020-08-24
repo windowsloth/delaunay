@@ -1,6 +1,9 @@
 /***********************QUAD-EDGE DATA STRUCTURE*******************************/
 /****************( as desribed in Guibas & Stolfi (1985) )*********************/
 
+// NOTE THAT THESE COMMENTS RELFECT AN EARLIER, MESSIER VERSION OF THIS CODE.
+// I HAVE YET TO CLEAN THINGS UP SO CERTAIN SECTIONS MAY NOT MAKE SENSE.
+
 // An implimentation of the quad-edge data structure as outlined in PRIMITIVES
 // FOR THE MANIPULATION OF GENERAL SUBDIVISIONS AND THE COMPUTATION OF VORONOI
 // DIAGRAMS (1985).
@@ -149,7 +152,7 @@ class MakeEdge {
     this.onext.rot.NEXT = alphaONEXT;
     e.onext.rot.NEXT = betaONEXT;
   }
-  
+
   connect(a, arr) {
     const e = new MakeEdge();
     e.setup(this.end, a.start, arr);

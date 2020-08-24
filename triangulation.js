@@ -1,6 +1,9 @@
 /*************************DELAUNAY TRIANGULATION*******************************/
 /****************( as desribed in Guibas & Stolfi (1985) )*********************/
 
+// NOTE THAT THESE COMMENTS RELFECT AN EARLIER, MESSIER VERSION OF THIS CODE.
+// I HAVE YET TO CLEAN THINGS UP SO CERTAIN SECTIONS MAY NOT MAKE SENSE.
+
 // An implimentation of the divide-and-conquer algorithim for calculating a
 // delaunay triangulation from a set of points, as outlined in PRIMITIVES
 // FOR THE MANIPULATION OF GENERAL SUBDIVISIONS AND THE COMPUTATION OF VORONOI
