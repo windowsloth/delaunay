@@ -378,6 +378,16 @@ Of course, coding this is a little bit more abstract than just drawing circles, 
 
 This function receives a four points, the first three make up a triangle sorted in counter-clockwise order (another spot where making sure our orientation is correct is important!) and the fourth being the point we want to test. If that fourth point is within the circle formed by the first three points, the test will return false. If it returns true, then the fourth point is not within the circle. Mathematically, all this test entails is taking the determinant of the following matrix:
 
+```
+| x1, y1, (x1^2) + (y1^2), 1 |
+| x2, y2, (x2^2) + (y2^2), 1 |
+| x3, y3, (x3^2) + (y3^2), 1 |
+| x4, y4, (x4^2) + (y4^2), 1 |
+
+  | x1 - x4, y1 - y4, ((x1 - x4)^2) + ((y1 - y4)^2) |
+= | x2 - x4, y2 - y4, ((x2 - x4)^2) + ((y2 - y4)^2) |
+  | x3 - x4, y3 - y4, ((x3 - x4)^2) + ((y3 - y4)^2) |
+```
 ![the "incircle" test](../media/incircle.png)
 
 The code I am using for this test looks like this:
