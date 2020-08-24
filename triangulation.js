@@ -113,8 +113,9 @@ function delaunay(points) {
       let lmaybe = base.opposite.onext;
       while(rightof(lmaybe.end, base)
         && incircle(base.end, base.start, lmaybe.end, lmaybe.onext.end)) {
+        let temp = lmaybe.onext;
         lmaybe.destroy(edges);
-        lmaybe = lmaybe.onext;
+        lmaybe = temp;
       }
 //    SYMMETRICALLY, LOCATE THE FIRST r POINT TO BE HIT, AND DELETE r EDGES
 //
@@ -124,8 +125,9 @@ function delaunay(points) {
       let rmaybe = base.oprev;
       while(rightof(rmaybe.end, base)
         && incircle(base.end, base.start, rmaybe.end, rmaybe.oprev.end)) {
+        let temp = rmaybe.oprev
         rmaybe.destroy(edges);
-        rmaybe = rmaybe.oprev;
+        rmaybe = temp;
       }
 //    IF BOTH lmaybe AND rmaybe ARE INVALID, THEN base IS THE UPPER COMMON
 //    TANGENT.
@@ -146,7 +148,7 @@ function delaunay(points) {
 //    that passes through lmaybe.end, lmaybe.start, and rmaybe.start.
       if (rightof(lmaybe.end, base)) {
         if (rightof(rmaybe.end, base)
-          && incircle(lmaybe.end, base.end, base.start, rmaybe.end)) {
+          && incircle(lmaybe.end, lmaybe.start, rmaybe.start, rmaybe.end)) {
           base = rmaybe.connect(base.opposite, edges);
         } else {
           base = base.opposite.connect(lmaybe.opposite, edges);
